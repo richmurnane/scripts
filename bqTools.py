@@ -19,6 +19,7 @@ from google.cloud.exceptions import NotFound
 from google.cloud.bigquery import LoadJobConfig
 from google.cloud.bigquery import Table
 from google.cloud import storage
+import pandas as pd
 
 # ------------------------------------------------------------------
 # misc functions
@@ -594,7 +595,7 @@ def load_table_from_gcs(dataset_name, table_name, schema, source, skip_leading_r
         print(" ***************************** ")
 
         print("------ load_job.errors \n")
-        myErrors = load_job.errors
+        myErrors = load_job.errors if load_job.errors is not None else []
         print("load_job.errors - count is : " + str(len(myErrors)))
         for errorRecord in myErrors:
             print(errorRecord)
@@ -661,6 +662,37 @@ def load_table_from_csv(dataset_name, table_name, schema, local_file_name, skip_
 
     except Exception as e:
         errorStr = 'ERROR (load_table_from_csv): ' + str(e)
+        print(errorStr)
+        raise
+
+def load_table_from_df(dataset_name, table_name, dataframe, project=None, chunksize=10000, verbose=False, reauth=False, if_exists='Replace', private_key=None):
+    "this function should load a table from a pandas dataframe"
+    try:
+        # the read_gbq requires the project_id(project name), so fetch it if none passed in
+        if not project:
+            credentials, project_id = google.auth.default(scopes=['https://www.googleapis.com/auth/iam'])
+            project = str(project_id)
+
+        # Name of table to be written, in the form ‘dataset.tablename’
+        destination_table = str(dataset_name) + "." + str(table_name)
+
+        # https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.to_gbq.html
+        myResult = dataframe.to_gbq(destination_table, project, chunksize=chunksize, verbose=verbose, reauth=reauth, if_exists=if_exists, private_key=private_key)
+
+        output_dict = {
+            "dataset_name": str(dataset_name),
+            "table_name": str(table_name),
+            "destination_table": str(destination_table),
+            "project": str(project),
+            "myResult": str(myResult),
+            "status": "complete",
+            "msg": 'load_table_from_df {}'.format(destination_table)
+        }
+
+        return output_dict
+
+    except Exception as e:
+        errorStr = 'ERROR (load_table_from_df): ' + str(e)
         print(errorStr)
         raise
 
