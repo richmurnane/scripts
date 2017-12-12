@@ -1,4 +1,5 @@
 # bqTools.py
+# bqTools.py
 # sudo pip install --upgrade google-api-python-client
 # sudo pip install --upgrade google-cloud-bigquery
 # sudo pip install --upgrade google-datalab-bigquery
@@ -320,13 +321,18 @@ def drop_table(dataset_name, table_name, project=None):
         bigquery_client = bigquery.Client(project=project)
         dataset_ref = bigquery_client.dataset(dataset_name)
         table_ref = dataset_ref.table(table_name)
-        bigquery_client.delete_table(table_ref)
+
+        if table_exists(dataset_name, table_name):
+            bigquery_client.delete_table(table_ref)
+            myStatus = "complete/dropped"
+        else:
+            myStatus = "complete/table-not-exists"
 
         output_dict = {
             "dataset_name": dataset_name,
             "table_name": table_name,
-            "status": "complete",
-            "msg": 'Table {}:{} deleted.'.format(dataset_name, table_name)
+            "status": myStatus,
+            "msg": 'Table {}:{} delete command complete.'.format(dataset_name, table_name)
         }
 
         return output_dict
@@ -526,6 +532,7 @@ def load_data_from_gcs_simple(dataset_name, table_name, source, project=None):
         print(errorStr)
         raise
 
+
 def load_table_from_gcs(dataset_name, table_name, schema, source, skip_leading_rows=1, source_format='CSV', max_bad_records=0, write_disposition='WRITE_EMPTY', field_delimiter=",", project=None):
     "load a *NEW* table to bq from gcs with the schema"
     try:
@@ -617,8 +624,10 @@ def load_table_from_gcs(dataset_name, table_name, schema, source, skip_leading_r
             "inputFiles": str(inputFiles),
             "inputFileBytes": str(inputFileBytes),
             "outputBytes": str(outputBytes),
+            "error_list": myErrors,
             "status": "complete",
             "msg": 'load_table_from_gcs {}:{} {}'.format(dataset_name, table_name, source)
+
         }
 
         return output_dict
@@ -673,7 +682,7 @@ def load_table_from_df(dataset_name, table_name, dataframe, project=None, chunks
             credentials, project_id = google.auth.default(scopes=['https://www.googleapis.com/auth/iam'])
             project = str(project_id)
 
-        # Name of table to be written, in the form ‘dataset.tablename’
+        # Name of table to be written, in the form dataset.tablename
         destination_table = str(dataset_name) + "." + str(table_name)
 
         # https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.to_gbq.html
@@ -768,6 +777,7 @@ def export_table_to_gcs(dataset_name, table_name, destination, field_delimiter="
 # view functions
 # ------------------------------------------------------------------
 
+# note:  in bq, you do not use DDL - "create view as select ...."
 def create_view(dataset_name, view_name, sqlQuery, project=None):
     "create a view via python"
     try:
@@ -824,3 +834,4 @@ def read_gcs_file(bucket_name='merkle-cloud-innov-01-gcp', blob_name='fake-data-
 # ------------------------------------------------------------------
 
 # TODO:  fixed width file loads
+# is there a cast() function in bq?
