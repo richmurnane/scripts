@@ -1,20 +1,33 @@
 # gsTools.py
+"""
+Name:  
+    gsTools.py 
+
+Objectives:
+    Help you get $h!t done in Google Cloud Storage using Python
+
+TODO:
+    decide if things should be called blobs or files, discuss with Mike
+
+Problems?:
+    Contact Rich or Tam
+
+"""
 import google.auth
 from google.cloud import storage
 import pandas as pd
 
-#todo:  decide if things should be called blobs or files, discuss with Mike
 
 # ------------------------------------------------------------------
 # google cloud storage (gcs) aka google storage (gs) functions 
 # ------------------------------------------------------------------
+
 
 def copy_blob(bucket_name, blob_name, new_bucket_name, new_blob_name, project=None):
     """
     Copies a blob from one bucket to another with a new name.
     """
     try:
-        msg = "Msg: copy_blob"
         # the read_gbq requires the project_id(project name), so fetch it if none passed in
         if not project:
             credentials, project_id = google.auth.default(scopes=['https://www.googleapis.com/auth/iam'])
@@ -50,21 +63,29 @@ def copy_blob(bucket_name, blob_name, new_bucket_name, new_blob_name, project=No
         print(errorStr)
         raise
 
+
 def rename_blob(bucket_name, blob_name, new_name, project=None):
     """
     Renames a blob.
     """
     try:
-        msg = "Msg: rename_blob"
         # the read_gbq requires the project_id(project name), so fetch it if none passed in
         if not project:
             credentials, project_id = google.auth.default(scopes=['https://www.googleapis.com/auth/iam'])
+        else:
+            project_id = None
 
+        project = (project or project_id)
         client = storage.Client(project=project)
         bucket = client.get_bucket(bucket_name)
         blob = bucket.blob(blob_name)
 
         new_blob = bucket.rename_blob(blob, new_name)
+
+        if new_blob:
+            new_blob_str = "YES"
+        else:
+            new_blob_str = "NO"
 
         msg = 'Blob {} has been renamed to {}'.format(blob_name, new_name)
 
@@ -74,7 +95,8 @@ def rename_blob(bucket_name, blob_name, new_name, project=None):
             "blob_name": str(blob_name),
             "new_name": str(new_name),
             "status": "complete",
-            "msg": msg
+            "msg": msg,
+            "new_blob_str": new_blob_str
         }
 
         return output_dict
@@ -84,16 +106,19 @@ def rename_blob(bucket_name, blob_name, new_name, project=None):
         print(errorStr)
         raise
 
+
 def new_gs_file_from_string(bucket_name, blob_name, string_text, project=None):
     """
     create a new file on gs and place the string in it
     """
     try:
-        msg = "Msg: new_gs_file_from_string"
         # the read_gbq requires the project_id(project name), so fetch it if none passed in
         if not project:
             credentials, project_id = google.auth.default(scopes=['https://www.googleapis.com/auth/iam'])
+        else:
+            project_id = None
 
+        project = (project or project_id)
         client = storage.Client(project=project)
         bucket = client.get_bucket(bucket_name)
         blob = bucket.blob(blob_name)
@@ -116,18 +141,23 @@ def new_gs_file_from_string(bucket_name, blob_name, string_text, project=None):
         print(errorStr)
         raise
 
+
 def print_bucket_list(project=None):
     """
     simply print out the names of the buckets
     """
     try:
+        # the read_gbq requires the project_id(project name), so fetch it if none passed in
         if not project:
             credentials, project_id = google.auth.default(scopes=['https://www.googleapis.com/auth/iam'])
+        else:
+            project_id = None
 
+        project = (project or project_id)
         client = storage.Client(project=project)
         buckets = client.list_buckets()
         for bkt in buckets:
-          print(bkt)
+            print(bkt)
 
         msg = 'print complete'
 
@@ -143,6 +173,7 @@ def print_bucket_list(project=None):
         print(errorStr)
         raise
 
+
 def get_blob_list_dataframe(bucket_name, max_results=99999, prefix=None, project=None, printOut=None):
     """
     return a pandas dataframe of the filenames in a bucket, search for files by using prefix
@@ -150,7 +181,10 @@ def get_blob_list_dataframe(bucket_name, max_results=99999, prefix=None, project
     try:
         if not project:
             credentials, project_id = google.auth.default(scopes=['https://www.googleapis.com/auth/iam'])
+        else:
+            project_id = None
 
+        project = (project or project_id)
         client = storage.Client(project=project)
         bucket = client.get_bucket(bucket_name)
         blobs = bucket.list_blobs(max_results=max_results, prefix=prefix)
@@ -160,9 +194,12 @@ def get_blob_list_dataframe(bucket_name, max_results=99999, prefix=None, project
             fileName = blobFile.name
             fileId = blobFile.id
             fileSize = blobFile.size
+            time_created = blobFile.time_created
+            updated = blobFile.updated
             if printOut:
                 print(fileName)
-            output_dict.append({'fileName':fileName,'fileId':fileId,'fileSize':fileSize})
+            output_dict.append({'fileName': fileName, 'fileId': fileId, 'fileSize': fileSize,
+                                'time_created': time_created, 'updated': updated})
 
         df = pd.DataFrame(output_dict)
 
@@ -174,10 +211,10 @@ def get_blob_list_dataframe(bucket_name, max_results=99999, prefix=None, project
         raise
 
 
-# Michael L. asked to research reading a file from gcs in python
-def read_gcs_file(bucket_name='merkle-cloud-innov-01-gcp', blob_name='fake-data-3cols_2017110901.csv'):
+def read_gcs_file(bucket_name='blah-blah-blah', blob_name='fake-data-3cols_2017110901.csv'):
     """
     reading a file from gcs in python
+    Michael L. asked to research reading a file from gcs in python
     """
     client = storage.Client()
     bucket = client.get_bucket(bucket_name)
@@ -203,8 +240,59 @@ def read_gcs_file(bucket_name='merkle-cloud-innov-01-gcp', blob_name='fake-data-
     return output_dict
 
 
-# todo: def upload_file(bucket_name, blob_name, filename)
+def upload_file(local_filename, bucket_name, gs_filename):
+    """
+    upload a file to gs
+    https://cloud.google.com/storage/docs/object-basics#storage-upload-object-python
+    """
+    try:
+        client = storage.Client()
+        bucket = client.get_bucket(bucket_name)
+        blob = bucket.blob(gs_filename)
+        blob.upload_from_filename(local_filename)
 
-# todo: def download_file(bucket_name, blob_name, filename)
+        msg = 'local_filename {} has been sent to {} {} '.format(local_filename, bucket_name, gs_filename)
+
+        output_dict = {
+            "bucket_name": str(bucket_name),
+            "local_filename": str(local_filename),
+            "gs_filename": str(gs_filename),
+            "status": "complete",
+            "msg": msg
+        }
+
+        return output_dict
+
+    except Exception as e:
+        errorStr = 'ERROR (upload_file): ' + str(e)
+        print(errorStr)
+        raise
 
 
+def download_file(bucket_name, gs_filename, local_filename):
+    """
+    upload a file to gs
+    https://cloud.google.com/storage/docs/object-basics#storage-upload-object-python
+    """
+    try:
+        client = storage.Client()
+        bucket = client.get_bucket(bucket_name)
+        blob = bucket.blob(gs_filename)
+        blob.download_to_filename(local_filename)
+
+        msg = 'gcp file {} {} has been sent to {} '.format(bucket_name, gs_filename, local_filename)
+
+        output_dict = {
+            "bucket_name": str(bucket_name),
+            "gs_filename": str(gs_filename),
+            "local_filename": str(local_filename),
+            "status": "complete",
+            "msg": msg
+        }
+
+        return output_dict
+
+    except Exception as e:
+        errorStr = 'ERROR (download_file): ' + str(e)
+        print(errorStr)
+        raise

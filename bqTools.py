@@ -1,13 +1,26 @@
 # bqTools.py
-# sudo pip install --upgrade google-api-python-client
-# sudo pip install --upgrade google-cloud-bigquery
-# sudo pip install --upgrade google-datalab-bigquery
-# sudo pip install --upgrade google-cloud-storage
-# Please set GOOGLE_APPLICATION_CREDENTIALS or explicitly
-# create credential and re-run the application.
-# For more information, please see
-# https://developers.google.com/accounts/docs/application-default-credentials
-# Note:  if project arguement is left to None in the below, your default project will be used
+"""
+Name:
+    bqTools.py 
+
+Objectives:
+    Help you get $h!t done in Google BigQuery using Python
+
+Problem:
+    Contact Rich or Tam
+
+Install list:
+    sudo pip install --upgrade google-api-python-client
+    sudo pip install --upgrade google-cloud-bigquery
+    sudo pip install --upgrade google-datalab-bigquery
+    sudo pip install --upgrade google-cloud-storage
+    Please set GOOGLE_APPLICATION_CREDENTIALS or explicitly
+    create credential and re-run the application.
+    For more information, please see
+    https://developers.google.com/accounts/docs/application-default-credentials
+    Note:  if project argument is left to None in the below, your default project will be used
+
+"""
 
 from pandas.io import gbq
 import json
@@ -26,18 +39,19 @@ import datetime
 # project functions
 # ------------------------------------------------------------------
 
+
 def print_project_names():
     """
     print_project_names prints a list of projects your account has access to stdout
 
     Args:
-       None
+       No inbound arguments.
 
     Returns:
-        None
+        Nothing returned.
 
     Raises:
-       None
+       No exceptions raised.
 
     """
     bigquery_client = bigquery.Client()
@@ -72,6 +86,7 @@ def dataset_exists(dataset_name, project=None):
         return True
     except NotFound:
         return False
+
 
 def create_dataset(dataset_name, project=None):
     """
@@ -111,6 +126,7 @@ def create_dataset(dataset_name, project=None):
         print(errorStr)
         raise
 
+
 def print_dataset_names(project=None):
     """
     print_dataset_names prints to stdout all datasets in a given project.
@@ -128,6 +144,7 @@ def print_dataset_names(project=None):
     bigquery_client = bigquery.Client(project=project)
     for dataset in bigquery_client.list_datasets():
         print(dataset.dataset_id)
+
 
 def delete_dataset(dataset_name, project=None):
     """
@@ -200,6 +217,7 @@ def print_table_names(dataset_name, project=None):
         print(errorStr)
         raise
 
+
 def table_exists(dataset_name, table_name, project=None):
     """
     table_exists returns a True/False - does the table or VIEW live in this dataset?
@@ -230,6 +248,7 @@ def table_exists(dataset_name, table_name, project=None):
         errorStr = 'ERROR (table_exists): ' + str(e)
         print(errorStr)
         raise
+
 
 def create_empty_table(dataset_name, table_name, schema=None, project=None):
     """
@@ -272,12 +291,17 @@ def create_empty_table(dataset_name, table_name, schema=None, project=None):
         # table_ref.schema = schema
         table = Table(table_ref, schema=schemaList)
         table = bigquery_client.create_table(table)
+        if table:
+            table_str = "yes"
+        else:
+            table_str = "no"
 
         output_dict = {
             "dataset_name": dataset_name,
             "table_name": table_name,
             "status": "complete",
-            "msg": 'Created table {}.'.format(table_name)
+            "msg": 'Created table {}.'.format(table_name),
+            "table_str": table_str
         }
 
         return output_dict
@@ -286,6 +310,7 @@ def create_empty_table(dataset_name, table_name, schema=None, project=None):
         errorStr = 'ERROR (create_empty_table): ' + str(e)
         print(errorStr)
         raise
+
 
 def create_table_as_select(dataset_name, table_name, sqlQuery, project=None):
     """
@@ -343,7 +368,8 @@ def create_table_as_select(dataset_name, table_name, sqlQuery, project=None):
         print(errorStr)
         raise
 
-def create_table_as_select_cli(dataset_name, table_name, sqlQuery, project=None):
+
+def create_table_as_select_cli(dataset_name, table_name, sqlQuery):
     """
     create_table_as_select_cli - using google command line interface CLI 
     I do not anticipate using this one very often since we have create_table_as_select(),
@@ -355,7 +381,6 @@ def create_table_as_select_cli(dataset_name, table_name, sqlQuery, project=None)
        dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
        table_name (str, required):  The bq table name, need to test if CaSe SENsitIVE.
        sqlQuery (str, required):  The sql needed to create the table
-       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
 
     Returns:
         A dictionary object containing information about the process.
@@ -364,7 +389,9 @@ def create_table_as_select_cli(dataset_name, table_name, sqlQuery, project=None)
        Standard errors are printed to stdout and raised.
     """
     try:
-        osCmd = "bq query --use_legacy_sql=false --destination_table '" + dataset_name + "." + table_name + "' --allow_large_results \"" + sqlQuery + " \" | head -1"
+        osCmd = """
+        bq query --use_legacy_sql=false --destination_table '""" + dataset_name + "." + table_name + """
+        ' --allow_large_results \"""" + sqlQuery + " \" | head -1"
         print("begin: " + str(osCmd))
         resultCode = call(osCmd, shell=True)
         returnMsg = 'Created table: {} result code: {}.'.format(table_name, resultCode)
@@ -385,7 +412,8 @@ def create_table_as_select_cli(dataset_name, table_name, sqlQuery, project=None)
         print(errorStr)
         raise
 
-def copy_table(dataset_name, source_table_name, dest_table_name, project=None):
+
+def copy_table(dataset_name, source_table_name, dest_table_name, dest_dataset_name=None, project=None):
     """
     copy_table clones the source table to the destination table within the same dataset
 
@@ -393,6 +421,7 @@ def copy_table(dataset_name, source_table_name, dest_table_name, project=None):
        dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
        source_table_name (str, required):  The bq table name of the origin table
        dest_table_name (str, required):  The bq table name of the new destination table
+       dest_dataset_name (str, optional):  the bq target destination dataset for the copy, if None then dataset_name
        project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
 
     Returns:
@@ -408,9 +437,13 @@ def copy_table(dataset_name, source_table_name, dest_table_name, project=None):
             returnMsg = 'ERROR (copy_table) Existing Table: {}.'.format(dataset_name)
             return returnMsg
 
+        if not dest_dataset_name:
+            dest_dataset_name = dataset_name
+
         dataset_ref = bigquery_client.dataset(dataset_name)
+        dest_dataset_ref = bigquery_client.dataset(dest_dataset_name)
         source_table_ref = dataset_ref.table(source_table_name)
-        dest_table_ref = dataset_ref.table(dest_table_name)
+        dest_table_ref = dest_dataset_ref.table(dest_table_name)
         job_config = bigquery.CopyJobConfig()
         copy_job = bigquery_client.copy_table(source_table_ref, dest_table_ref, job_config=job_config)
         copy_job.result()  # Waits for job to complete.
@@ -419,6 +452,7 @@ def copy_table(dataset_name, source_table_name, dest_table_name, project=None):
             "dataset_name": dataset_name,
             "source_table_name": source_table_name,
             "dest_table_name": dest_table_name,
+            "dest_dataset_name": dest_dataset_name,
             "job_id": copy_job.job_id,
             "status": "complete",
             "msg": 'copy_table: Table {} copied to {}.'.format(source_table_name, dest_table_name)
@@ -430,6 +464,7 @@ def copy_table(dataset_name, source_table_name, dest_table_name, project=None):
         errorStr = 'ERROR (copy_table): ' + str(e)
         print(errorStr)
         raise
+
 
 def drop_table(dataset_name, table_name, project=None):
     """
@@ -473,6 +508,7 @@ def drop_table(dataset_name, table_name, project=None):
         print(errorStr)
         raise
 
+
 def print_table_meta(dataset_name, table_name, project=None):
     """
     print_table_meta prints to stdout the num of rows (via gcp meta), schema, and description
@@ -500,6 +536,7 @@ def print_table_meta(dataset_name, table_name, project=None):
         print("table.schema: " + str(table.schema))
 
         returnMsg = 'print_table_meta table: {}.'.format(table_name)
+
         output_dict = {
             "dataset_name": dataset_name,
             "table_name": table_name,
@@ -513,6 +550,7 @@ def print_table_meta(dataset_name, table_name, project=None):
         errorStr = 'ERROR (print_table_meta): ' + str(e)
         print(errorStr)
         raise
+
 
 def rename_table(dataset_name, table_name, new_table_name, project=None):
     """
@@ -544,10 +582,16 @@ def rename_table(dataset_name, table_name, new_table_name, project=None):
         copyResult = copy_table(dataset_name, table_name, new_table_name, project)
         dropResult = drop_table(dataset_name, table_name, project)
 
+        if dropResult:
+            dropResult_str = "yes"
+        else:
+            dropResult_str = "no"
+
         output_dict = copyResult
 
-        output_dict.update({"rename_table":"rename_table"})
-        output_dict.update({"rename_status":"complete"})
+        output_dict.update({"rename_table": "rename_table"})
+        output_dict.update({"rename_status": "complete"})
+        output_dict.update({"dropResult_str": dropResult_str})
         
         return output_dict
 
@@ -555,6 +599,7 @@ def rename_table(dataset_name, table_name, new_table_name, project=None):
         errorStr = 'ERROR (copy_table): ' + str(e)
         print(errorStr)
         raise
+
 
 def get_table_schema(dataset_name, table_name, project=None):
     """
@@ -583,6 +628,7 @@ def get_table_schema(dataset_name, table_name, project=None):
         print(errorStr)
         raise
 
+
 def get_table_columns_df(dataset_name, table_name, project=None):
     """
     get_table_columns_df returns a pandas dataframe containing the field names for a table
@@ -607,7 +653,7 @@ def get_table_columns_df(dataset_name, table_name, project=None):
         myCount = 0
         for field in table.schema:
             myCount = myCount + 1
-            field_dict.update({myCount:field.name})
+            field_dict.update({myCount: field.name})
 
         df = pd.DataFrame.from_dict(field_dict, 'index')
         return df
@@ -620,6 +666,7 @@ def get_table_columns_df(dataset_name, table_name, project=None):
 # ------------------------------------------------------------------
 # query functions
 # ------------------------------------------------------------------
+
 
 def print_25_rows(dataset_name, table_name, project=None):
     """
@@ -674,7 +721,9 @@ def print_25_rows(dataset_name, table_name, project=None):
         print(errorStr)
         raise
 
-def get_dataframe(sqlQuery, project=None, index_col=None, col_order=None, reauth=False, verbose=False, private_key=None, dialect='legacy'):
+
+def get_dataframe(sqlQuery, project=None, index_col=None, col_order=None, reauth=False,
+                  verbose=False, private_key=None, dialect='legacy'):
     """
     get_dataframe returns a pandas dataframe for a query, nice!
 
@@ -710,6 +759,7 @@ def get_dataframe(sqlQuery, project=None, index_col=None, col_order=None, reauth
         errorStr = 'ERROR (get_dataframe): ' + str(e)
         print(errorStr)
         raise
+
 
 def query_standard_sql(sqlQuery, print_stdout=True):
     """
@@ -750,6 +800,7 @@ def query_standard_sql(sqlQuery, print_stdout=True):
 
     return output_dict
 
+
 def print_1_rows(dataset_name, table_name, project=None):
     """
     print_1_rows - created by Bandhav - Prints rows in the given table.
@@ -776,7 +827,8 @@ def print_1_rows(dataset_name, table_name, project=None):
         table = bigquery_client.get_table(table_ref)
 
         # Load at most 1 results.
-        rows = bigquery_client.list_rows(table, max_results=1)
+        # commented this out, was it needed?
+        # rows = bigquery_client.list_rows(table, max_results=1)
 
         # Use format to create a simple table.
         format_string = '{!s:<16} ' * len(table.schema)
@@ -787,10 +839,10 @@ def print_1_rows(dataset_name, table_name, project=None):
         # print(format_string.format(*field_names))
         print(field_names)
 
-        #for row in rows:
-         #   print(format_string.format(*row))
+        # for row in rows:
+        #   print(format_string.format(*row))
 
-       # returnMsg = 'print_1_rows table {} in dataset {}.'.format(table_name, dataset_name)
+        # returnMsg = 'print_1_rows table {} in dataset {}.'.format(table_name, dataset_name)
 
         return field_names
 
@@ -803,6 +855,7 @@ def print_1_rows(dataset_name, table_name, project=None):
 # ------------------------------------------------------------------
 # import functions
 # ------------------------------------------------------------------
+
 
 def load_data_from_gcs_simple(dataset_name, table_name, source, max_bad_records=0, project=None):
     """
@@ -842,7 +895,7 @@ def load_data_from_gcs_simple(dataset_name, table_name, source, max_bad_records=
             load_job.output_rows, dataset_name, table_name))
 
         job_id = load_job.job_id
-        job_exception = load_job.exception
+        # job_exception = load_job.exception
         job_state = load_job.state
         error_result = load_job.error_result
         job_statistics = load_job._job_statistics()
@@ -875,8 +928,9 @@ def load_data_from_gcs_simple(dataset_name, table_name, source, max_bad_records=
         print(errorStr)
         raise
 
-def load_table_from_gcs(dataset_name, table_name, schema, source, skip_leading_rows=1, source_format='CSV', max_bad_records=0, 
-    write_disposition='WRITE_EMPTY', field_delimiter=",", project=None):
+
+def load_table_from_gcs(dataset_name, table_name, schema, source, skip_leading_rows=1, source_format='CSV',
+                        max_bad_records=0, write_disposition='WRITE_EMPTY', field_delimiter=",", project=None):
     """
     load_table_from_gcs loads a *NEW* table to bq from gcs with the schema
 
@@ -888,7 +942,8 @@ def load_table_from_gcs(dataset_name, table_name, schema, source, skip_leading_r
        skip_leading_rows (int, default 1):  set to 0 if no header
        source_format (str, default CSV):  only set this to CSV or things like Avro, etc. 
        max_bad_records (int, default 0):  suggest setting this to a higher number, like 1000 or something
-       write_disposition (str, default WRITE_EMPTY):  WRITE_EMPTY overrides the table, other options: WRITE_TRUNCATE WRITE_APPEND
+       write_disposition (str, default WRITE_EMPTY):  WRITE_EMPTY overrides the table,
+            other options: WRITE_TRUNCATE WRITE_APPEND
        field_delimiter (str, default ","):  the file delimiter, use "/t" for tab
        project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
 
@@ -1000,7 +1055,9 @@ def load_table_from_gcs(dataset_name, table_name, schema, source, skip_leading_r
         print(errorStr)
         raise
 
-def load_table_from_csv(dataset_name, table_name, schema, local_file_name, skip_leading_rows=1, source_format='CSV', max_bad_records=0, project=None):
+
+def load_table_from_csv(dataset_name, table_name, schema, local_file_name, skip_leading_rows=1, source_format='CSV',
+                        max_bad_records=0, project=None):
     """
     load_table_from_csv loads a local file to bq.
     This is really just a sample for the code base.  
@@ -1061,7 +1118,9 @@ def load_table_from_csv(dataset_name, table_name, schema, local_file_name, skip_
         print(errorStr)
         raise
 
-def load_table_from_df(dataset_name, table_name, dataframe, chunksize=10000, verbose=False, reauth=False, if_exists='replace', private_key=None, project=None):
+
+def load_table_from_df(dataset_name, table_name, dataframe, chunksize=10000, verbose=False, reauth=False,
+                       if_exists='replace', private_key=None, project=None):
     """
     load_table_from_df loads a table from a pandas dataframe
 
@@ -1092,7 +1151,8 @@ def load_table_from_df(dataset_name, table_name, dataframe, chunksize=10000, ver
         destination_table = str(dataset_name) + "." + str(table_name)
 
         # https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.to_gbq.html
-        myResult = dataframe.to_gbq(destination_table, project, chunksize=chunksize, verbose=verbose, reauth=reauth, if_exists=if_exists, private_key=private_key)
+        myResult = dataframe.to_gbq(destination_table, project, chunksize=chunksize, verbose=verbose,
+                                    reauth=reauth, if_exists=if_exists, private_key=private_key)
 
         output_dict = {
             "dataset_name": str(dataset_name),
@@ -1111,7 +1171,9 @@ def load_table_from_df(dataset_name, table_name, dataframe, chunksize=10000, ver
         print(errorStr)
         raise
 
-def load_table_from_gcs_fixedwidth(dataset_name, table_name, fixedwidth_spec, source, skip_leading_rows=1, max_bad_records=0, project=None):
+
+def load_table_from_gcs_fixedwidth(dataset_name, table_name, fixedwidth_spec, source, skip_leading_rows=1,
+                                   max_bad_records=0, project=None):
     """
     load_table_from_gcs_fixedwidth loads a fixed width format file from gcs to 
     bq with fixedwidth_spec
@@ -1128,7 +1190,6 @@ def load_table_from_gcs_fixedwidth(dataset_name, table_name, fixedwidth_spec, so
        fixedwidth_spec (str, required):  see comments above
        source (str, required):  The file location, fully qualified i.e. gs://bucketName/filename.csv.
        skip_leading_rows (int, default 1):  set to 0 if no header
-       source_format (str, default CSV):  only set this to CSV or things like Avro, etc. 
        max_bad_records (int, default 0):  suggest setting this to a higher number, like 1000 or something
        project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
 
@@ -1153,10 +1214,12 @@ def load_table_from_gcs_fixedwidth(dataset_name, table_name, fixedwidth_spec, so
         print str(_["msg"])
 
         # load fixed width files into a temp table of one full string column
-        load_job_output = load_table_from_gcs(dataset_name, temp_table_name, temp_schema, source, skip_leading_rows, 'CSV', max_bad_records, 'WRITE_EMPTY', ",", project)
+        load_job_output = load_table_from_gcs(dataset_name, temp_table_name, temp_schema, source, skip_leading_rows,
+                                              'CSV', max_bad_records, 'WRITE_EMPTY', ",", project)
         print str(load_job_output['msg'])
         # get the select query from the provided fixedwidth_spec
-        sqlQuery = convert_sqlquery_from_fixedwidth_spec(dataset_name, temp_table_name, fixedwidth_spec, full_col_name="fullstring")
+        sqlQuery = convert_sqlquery_from_fixedwidth_spec(dataset_name, temp_table_name, fixedwidth_spec,
+                                                         full_col_name="fullstring")
         print 'sqlQuery: ', sqlQuery
 
         _ = drop_table(dataset_name, table_name)
@@ -1200,7 +1263,9 @@ def load_table_from_gcs_fixedwidth(dataset_name, table_name, fixedwidth_spec, so
 # export functions
 # ------------------------------------------------------------------
 
-def export_table_to_gcs(dataset_name, table_name, destination, field_delimiter=",", print_header=None, destination_format="CSV", compression="GZIP", project=None):
+
+def export_table_to_gcs(dataset_name, table_name, destination, field_delimiter=",", print_header=None,
+                        destination_format="CSV", compression="GZIP", project=None):
     """
     export_table_to_gcs exports a table from bq into a file on gcs,
         the destination should look like the following, with no brackets {}
@@ -1219,7 +1284,7 @@ def export_table_to_gcs(dataset_name, table_name, destination, field_delimiter="
         field_delimiter (str, default ","):  the file delimiter, use "/t" for tab
         print_header (boolean, default true):  print a header row if true
         destination_format (str, default "CSV"):  cannot imagine us using anything but CSV
-        compression (str, default "GZIP"): compression algorith, leave NULL/None if no compression
+        compression (str, default "GZIP"): compression algorithm, leave NULL/None if no compression
         project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
 
     Returns:
@@ -1279,7 +1344,9 @@ def export_table_to_gcs(dataset_name, table_name, destination, field_delimiter="
         print(errorStr)
         raise
 
-def export_query_to_gcs(dataset_name, sqlQuery, destination, field_delimiter=",", print_header=None, destination_format="CSV", compression="GZIP", keep_temp_table=None, project=None):
+
+def export_query_to_gcs(dataset_name, sqlQuery, destination, field_delimiter=",", print_header=None,
+                        destination_format="CSV", compression="GZIP", keep_temp_table=None, project=None):
     """
     export_query_to_gcs creates a temporary table and export it to gs, then drop the temp table
 
@@ -1291,6 +1358,7 @@ def export_query_to_gcs(dataset_name, sqlQuery, destination, field_delimiter=","
         print_header (boolean, default true):  print a header row if true
         destination_format (str, default "CSV"):  cannot imagine us using anything but CSV
         compression (str, default "GZIP"): compression algorith, leave NULL/None if no compression
+        keep_temp_table (str, optional): set to YES if you want to keep the temp table for some reason
         project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
 
     Returns:
@@ -1302,11 +1370,18 @@ def export_query_to_gcs(dataset_name, sqlQuery, destination, field_delimiter=","
     try:
 
         my_date = datetime.datetime.now()
-        date_str = str(my_date.year) + str(my_date.month) + str(my_date.day) + str(my_date.hour) + str(my_date.minute) + str(my_date.second) + '0000'
-        tmp_table_name =  "TMP_EXPORT_" + date_str.upper()
+        date_str = str(my_date.year) + str(my_date.month) + str(my_date.day) + str(my_date.hour)
+        date_str = date_str + str(my_date.minute) + str(my_date.second) + '0000'
+        tmp_table_name = "TMP_EXPORT_" + date_str.upper()
 
+        myResult = None
         if table_exists(dataset_name, tmp_table_name):
             myResult = drop_table(dataset_name, tmp_table_name)
+
+        if myResult:
+            run_drop = "YES"
+        else:
+            run_drop = "NO"
 
         # comment out print if not needed
         print("creating TMP table " + str(tmp_table_name))
@@ -1315,13 +1390,10 @@ def export_query_to_gcs(dataset_name, sqlQuery, destination, field_delimiter=","
         print(tmpTableResult)
 
         print("begin export " + str(tmp_table_name))
-        exportTableResult = export_table_to_gcs(
-                                dataset_name, tmp_table_name, destination, 
-                                field_delimiter=field_delimiter, print_header=print_header, 
-                                destination_format=destination_format, compression=compression, 
-                                project=project)
-        # comment out print if not needed
-        # print(exportTableResult)
+        exportTableResult = export_table_to_gcs(dataset_name, tmp_table_name, destination,
+                                                field_delimiter=field_delimiter, print_header=print_header,
+                                                destination_format=destination_format, compression=compression,
+                                                project=project)
 
         output_dict = exportTableResult
 
@@ -1330,14 +1402,23 @@ def export_query_to_gcs(dataset_name, sqlQuery, destination, field_delimiter=","
 
         if keep_temp_table.upper() == "YES":
             print("temporary table not dropped")
-            output_dict.update({"tmp_table_kept":"YES"})
+            output_dict.update({"tmp_table_kept": "YES"})
         else:
             if table_exists(dataset_name, tmp_table_name):
                 myResult = drop_table(dataset_name, tmp_table_name)
-                output_dict.update({"tmp_table_kept":"NO"})
+                output_dict.update({"tmp_table_kept": "NO"})
+
+                if myResult:
+                    myResult_str = "YES"
+                else:
+                    myResult_str = "NO"
+
+                output_dict.update({"myResult_str": myResult_str})
             else:
-                output_dict.update({"tmp_table_kept":"N/A"})
-        
+                output_dict.update({"tmp_table_kept": "N/A"})
+
+        output_dict.update({"run_drop": run_drop})
+
         return output_dict
 
     except Exception as e:
@@ -1350,9 +1431,10 @@ def export_query_to_gcs(dataset_name, sqlQuery, destination, field_delimiter=","
 # view functions
 # ------------------------------------------------------------------
 
-# note:  in bq, you do not use DDL - "create view as select ...."
+
 def create_view(dataset_name, view_name, sqlQuery, project=None):
     """
+    note:  in bq, you do not use DDL - "create view as select ...."
     create_view creates a view using the SQL passed in,
     note bq requires you to use standardSQL when querying a view created with standardSQL 
     and legacySQL when querying a view created with legacySQL
@@ -1393,6 +1475,7 @@ def create_view(dataset_name, view_name, sqlQuery, project=None):
 # misc functions
 # ------------------------------------------------------------------
 
+
 def convert_schema(schema_json_str):
     """
     convert_schema converts a standard bq cli json string into list formatted for bq python
@@ -1416,7 +1499,8 @@ def convert_schema(schema_json_str):
             fieldName = item["name"]
             fieldType = item["type"]
             fieldMode = item["mode"]
-            myThing = bigquery.SchemaField(fieldName.encode('utf-8'), fieldType.encode('utf-8'), mode=fieldMode.encode('utf-8'))
+            myThing = bigquery.SchemaField(fieldName.encode('utf-8'), fieldType.encode('utf-8'),
+                                           mode=fieldMode.encode('utf-8'))
             SCHEMA.append(myThing)
 
         return SCHEMA
@@ -1426,9 +1510,10 @@ def convert_schema(schema_json_str):
         print(errorStr)
         raise
 
-def convert_sqlquery_from_fixedwidth_spec(dataset_name, table_name, fixedwidth_spec, full_col_name ='fullstring'):
+
+def convert_sqlquery_from_fixedwidth_spec(dataset_name, table_name, fixedwidth_spec, full_col_name='fullstring'):
     """
-    convert_sqlquery_from_fixedwidth_spec creates a select sql query from the fixedwidth_spec and the provided table specs
+    convert_sqlquery_from_fixedwidth_spec creates a select sqlquery from fixedwidth_spec and the provided table specs
         Note on fixedwidth_spec: a string that follows the below format:
             ColumnName1:Width:DataType,ColumnName2:Width:DataType,...
 
@@ -1438,10 +1523,9 @@ def convert_sqlquery_from_fixedwidth_spec(dataset_name, table_name, fixedwidth_s
 
     Args:
         dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
-        table_name (str, required):  The bq table name of the table to be processed
-        fixedwidth_spec (str, required):  
-        full_col_name (str, default "fullstring"):  
-        project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+        table_name (str, required):  The bq table name of the table to be processed.
+        fixedwidth_spec (str, required):  TBD.
+        full_col_name (str, default "fullstring"):  TBD.
 
     Returns:
         A list of the table schema which the load can use.
@@ -1449,7 +1533,7 @@ def convert_sqlquery_from_fixedwidth_spec(dataset_name, table_name, fixedwidth_s
     Raises:
        Standard errors are printed to stdout and raised.
     """
-    sqlQuery ="SELECT "
+    sqlQuery = "SELECT "
     col_list = fixedwidth_spec.split(",")
     loc = 1
 
@@ -1466,36 +1550,43 @@ def convert_sqlquery_from_fixedwidth_spec(dataset_name, table_name, fixedwidth_s
             data_type = col_spec[2]
 
             if data_type not in ('STRING', 'INTEGER', 'FLOAT', 'BOOLEAN', 'TIMESTAMP'):
-                errorStr = 'ERROR (convert_sqlquery_from_fixedwidth_spec): data type must be either STRING, INTEGER, FLOAT, BOOLEAN, TIMESTAMP or RECORD'
+                errorStr = """
+                ERROR (convert_sqlquery_from_fixedwidth_spec): data type must be either 
+                STRING, INTEGER, FLOAT, BOOLEAN, TIMESTAMP or RECORD
+                """
                 print(errorStr)
                 raise
             else:
                 if data_type == 'INTEGER':
-                    sqlQuery = sqlQuery + 'CAST(LTRIM(RTRIM(SUBSTR(' + full_col_name + ',' + str(loc) + ',' + str(width) + '))) AS INT64) ' + name + ', '
+                    sqlQuery = sqlQuery + 'CAST(LTRIM(RTRIM(SUBSTR(' + full_col_name + ',' + str(loc) + ','
+                    sqlQuery = sqlQuery + str(width) + '))) AS INT64) ' + name + ', '
                 elif data_type == 'FLOAT':
-                    sqlQuery = sqlQuery + 'CAST(LTRIM(RTRIM(SUBSTR(' + full_col_name + ',' + str(loc) + ',' + str(width) + '))) AS FLOAT64) ' + name + ', '
+                    sqlQuery = sqlQuery + 'CAST(LTRIM(RTRIM(SUBSTR(' + full_col_name + ',' + str(loc) + ','
+                    sqlQuery = sqlQuery + str(width) + '))) AS FLOAT64) ' + name + ', '
                 elif data_type == 'BOOLEAN':
-                    sqlQuery = sqlQuery + 'CAST(LTRIM(RTRIM(SUBSTR(' + full_col_name + ',' + str(loc) + ',' + str(width) + '))) AS BOOL) ' + name + ', '
+                    sqlQuery = sqlQuery + 'CAST(LTRIM(RTRIM(SUBSTR(' + full_col_name + ',' + str(loc) + ','
+                    sqlQuery = sqlQuery + str(width) + '))) AS BOOL) ' + name + ', '
                 elif data_type == 'TIMESTAMP':
-                    sqlQuery = sqlQuery + 'CAST(LTRIM(RTRIM(SUBSTR(' + full_col_name + ',' + str(loc) + ',' + str(width) + '))) AS TIMESTAMP) ' + name + ', '
+                    sqlQuery = sqlQuery + 'CAST(LTRIM(RTRIM(SUBSTR(' + full_col_name + ',' + str(loc) + ','
+                    sqlQuery = sqlQuery + str(width) + '))) AS TIMESTAMP) ' + name + ', '
                 else:
-                    sqlQuery = sqlQuery + 'SUBSTR(' + full_col_name + ',' + str(loc) + ',' + str(width) + ') ' + name + ', '
+                    sqlQuery = sqlQuery + 'SUBSTR(' + full_col_name + ',' + str(loc) + ',' + str(width) + ') '
+                    sqlQuery = sqlQuery + name + ', '
                 # update location for the next field
                 loc = loc + int(width)
 
     sqlQuery = sqlQuery[:-2] + ' FROM `' + dataset_name + '.' + table_name + '`'
     return sqlQuery
 
-def run_sql_cli(dataset_name, sqlQuery, project=None):
+
+def run_sql_cli(sqlQuery):
     """
     run_sql_cli - from Bandhav - using CLI because CTAS and DDL/SQL not yet available
     head -1 is there because the CLI prints out to stdout the record, blah
     shell=true because you need to inherit GOOGLE_APPLICATION_CREDENTIALS
 
     Args:
-        dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
         sqlQuery (str, required):  The sqlQuery you want the command line interface to run
-        project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
 
     Returns:
         None.
@@ -1504,7 +1595,6 @@ def run_sql_cli(dataset_name, sqlQuery, project=None):
        Standard errors are printed to stdout and raised.
     """
     try:
-        resultCode=[]
         osCmd = "bq query --use_legacy_sql=false  \"" + sqlQuery + " \""
         print("begin: " + str(osCmd))
         resultCode = call(osCmd, shell=True)
@@ -1514,6 +1604,3 @@ def run_sql_cli(dataset_name, sqlQuery, project=None):
         errorStr = 'ERROR (run_sql_cli): ' + str(e)
         print(errorStr)
         raise
-
-
-
