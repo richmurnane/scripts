@@ -29,6 +29,16 @@ import datetime
 def print_project_names():
     """
     print_project_names prints a list of projects your account has access to stdout
+
+    Args:
+       None
+
+    Returns:
+        None
+
+    Raises:
+       None
+
     """
     bigquery_client = bigquery.Client()
     for project in bigquery_client.list_projects():
@@ -42,6 +52,18 @@ def print_project_names():
 def dataset_exists(dataset_name, project=None):
     """
     dataset_exists returns a True/False, depending on if the bq dataset exists in the project
+
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS
+
+    Returns:
+        True:  when the dataset exists
+        False:  when the dataset does not exist
+
+    Raises:
+       None
+
     """
     try:
         bigquery_client = bigquery.Client(project=project)
@@ -54,6 +76,17 @@ def dataset_exists(dataset_name, project=None):
 def create_dataset(dataset_name, project=None):
     """
     create_dataset creates a bq dataset, if already exists it will tell you
+
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS
+
+    Returns:
+        A dictionary object containing information about the process
+
+    Raises:
+       Standard errors are printed to stdout and raised
+
     """
     try:
 
@@ -82,6 +115,15 @@ def print_dataset_names(project=None):
     """
     print_dataset_names prints to stdout all datasets in a given project.
     If no project is specified, then the currently active project is used.
+    
+    Args:
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        None.
+
+    Raises:
+       None.
     """
     bigquery_client = bigquery.Client(project=project)
     for dataset in bigquery_client.list_datasets():
@@ -90,7 +132,17 @@ def print_dataset_names(project=None):
 def delete_dataset(dataset_name, project=None):
     """
     delete_dataset will drop a dataset.
-    Note:  I haven't tried to drop one with tables in it, #todo test that"
+    Note:  I haven't tried to drop one with tables in it, #todo test that".
+    
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A dictionary object containing information about the process.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         bigquery_client = bigquery.Client(project=project)
@@ -121,6 +173,16 @@ def print_table_names(dataset_name, project=None):
     """
     print_table_names prints to stdout all of the tables in a given dataset.
     If no project is specified, then the currently active project is used.
+    
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A string containg a simple message.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         bigquery_client = bigquery.Client(project=project)
@@ -140,7 +202,19 @@ def print_table_names(dataset_name, project=None):
 
 def table_exists(dataset_name, table_name, project=None):
     """
-    table_exists returns a True/False - does the table live in this dataset?
+    table_exists returns a True/False - does the table or VIEW live in this dataset?
+    
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       table_name (str, required):  The bq table name, need to test if CaSe SENsitIVE.
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        True:  when the object exists.
+        False:  when the dataset does not exist.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         bigquery_client = bigquery.Client(project=project)
@@ -161,7 +235,18 @@ def create_empty_table(dataset_name, table_name, schema=None, project=None):
     """
     create_empty_table creates an empty table with the provided schema, 
     note the schema format should be the same as the bq cli.
-    if no schema provided, it uses a dummy/sample schema
+
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       table_name (str, required):  The bq table name, need to test if CaSe SENsitIVE.
+       schema (str, optional):  The bq schema for this table, if no schema provided, it uses a dummy/sample schema.
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A dictionary object containing information about the process.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         bigquery_client = bigquery.Client(project=project)
@@ -207,6 +292,18 @@ def create_table_as_select(dataset_name, table_name, sqlQuery, project=None):
     create_table_as_select - classic Create Table As Select (CTAS), 
     uses CREATE_IF_NEEDED and WRITE_APPEND,
     these two options could be added later as arguments if needed
+
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       table_name (str, required):  The bq table name, need to test if CaSe SENsitIVE.
+       sqlQuery (str, required):  The sql needed to create the table
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A dictionary object containing information about the process.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         bigquery_client = bigquery.Client(project=project)
@@ -253,6 +350,18 @@ def create_table_as_select_cli(dataset_name, table_name, sqlQuery, project=None)
     leaving it in the code for reference though.
     Note:  head -1 is there because the CLI prints out to stdout the record, blah
     shell=true because you need to inherit GOOGLE_APPLICATION_CREDENTIALS
+
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       table_name (str, required):  The bq table name, need to test if CaSe SENsitIVE.
+       sqlQuery (str, required):  The sql needed to create the table
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A dictionary object containing information about the process.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         osCmd = "bq query --use_legacy_sql=false --destination_table '" + dataset_name + "." + table_name + "' --allow_large_results \"" + sqlQuery + " \" | head -1"
@@ -279,6 +388,18 @@ def create_table_as_select_cli(dataset_name, table_name, sqlQuery, project=None)
 def copy_table(dataset_name, source_table_name, dest_table_name, project=None):
     """
     copy_table clones the source table to the destination table within the same dataset
+
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       source_table_name (str, required):  The bq table name of the origin table
+       dest_table_name (str, required):  The bq table name of the new destination table
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A dictionary object containing information about the process.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
 
@@ -315,6 +436,17 @@ def drop_table(dataset_name, table_name, project=None):
     drop_table - drops the table, whamo - good luck
     Deletes a table in a given dataset.
     If no project is specified, then the currently active project is used.
+
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       table_name (str, required):  The bq table name of the table to get killed
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A dictionary object containing information about the process.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         bigquery_client = bigquery.Client(project=project)
@@ -344,6 +476,17 @@ def drop_table(dataset_name, table_name, project=None):
 def print_table_meta(dataset_name, table_name, project=None):
     """
     print_table_meta prints to stdout the num of rows (via gcp meta), schema, and description
+
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       table_name (str, required):  The bq table name of the table to get the metadata for
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A dictionary object containing information about the process.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         bigquery_client = bigquery.Client(project=project)
@@ -376,6 +519,18 @@ def rename_table(dataset_name, table_name, new_table_name, project=None):
     rename_table renames a table within the same dataset,
     to do this it copies and then removes the original, not pretty but there is no 
     rename function in bq at this time
+
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       table_name (str, required):  The bq table name of the table to get renamed
+       new_table_name (str, required):  The *NEW* bq table name
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A dictionary object containing information about the process.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         if table_exists(dataset_name, new_table_name, project) is True:
@@ -404,6 +559,17 @@ def rename_table(dataset_name, table_name, new_table_name, project=None):
 def get_table_schema(dataset_name, table_name, project=None):
     """
     get_table_schema returns an object containing the schema information for a table
+
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       table_name (str, required):  The bq table name of the table to get the schema for
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        An object of type bigquery_client table schema (complex object).
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         bigquery_client = bigquery.Client(project=project)
@@ -420,6 +586,17 @@ def get_table_schema(dataset_name, table_name, project=None):
 def get_table_columns_df(dataset_name, table_name, project=None):
     """
     get_table_columns_df returns a pandas dataframe containing the field names for a table
+
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       table_name (str, required):  The bq table name of the table to get the column list for
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A pandas dataframe containing the list of columns.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         bigquery_client = bigquery.Client(project=project)
@@ -449,6 +626,17 @@ def print_25_rows(dataset_name, table_name, project=None):
     print_25_rows prints rows to stdout in the given table.
     Will print 25 rows at most for brevity as tables can contain large amounts of rows. 
     If no project is specified, then the currently active project is used.
+
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       table_name (str, required):  The bq table name of the table to be inspected
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A dictionary object containing information about the process.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         bigquery_client = bigquery.Client(project=project)
@@ -489,6 +677,24 @@ def print_25_rows(dataset_name, table_name, project=None):
 def get_dataframe(sqlQuery, project=None, index_col=None, col_order=None, reauth=False, verbose=False, private_key=None, dialect='legacy'):
     """
     get_dataframe returns a pandas dataframe for a query, nice!
+
+    docs:  http://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_gbq.html
+
+    Args:
+       sqlQuery (str, required):  The bq sql to be executed.
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+       index_col (str, optional):  see http://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_gbq.html
+       col_order (str, optional):  see http://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_gbq.html
+       reauth (boolean, default False):  see http://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_gbq.html
+       verbose (boolean, default False):  see http://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_gbq.html
+       private_key (str, optional):  see http://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_gbq.html
+       dialect (str, default 'legacy'):  see http://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_gbq.html
+
+    Returns:
+        A pandas dataframe containing the list of columns.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         # the read_gbq requires the project_id(project name), so fetch it if none passed in
@@ -510,6 +716,16 @@ def query_standard_sql(sqlQuery, print_stdout=True):
     query_standard_sql allows you to just fire/forget a query to bq, Standard SQL
     allows you to turn on/off stdout for results, and returns a message back to you
     SQL should include fully qualified table names: `bigquery-public-data.samples.wikipedia`
+
+    Args:
+       sqlQuery (str, required):  The bq sql which will be executed on the db.
+       print_stdout (boolean, default True):  set to false if you want to hide standard output
+
+    Returns:
+        A dictionary object containing information about the process.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     job_config = bigquery.QueryJobConfig()
 
@@ -539,6 +755,17 @@ def print_1_rows(dataset_name, table_name, project=None):
     print_1_rows - created by Bandhav - Prints rows in the given table.
     Will print 25 rows at most for brevity as tables can contain large amounts
     of rows. If no project is specified, then the currently active project is used.
+
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       table_name (str, required):  The bq table name of the table to be inspected
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A list with the field names.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         bigquery_client = bigquery.Client(project=project)
@@ -580,6 +807,19 @@ def print_1_rows(dataset_name, table_name, project=None):
 def load_data_from_gcs_simple(dataset_name, table_name, source, max_bad_records=0, project=None):
     """
     load_data_from_gcs_simple loads a *NEW* table to bq from gcs without the schema, autodetect it - nice!
+
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       table_name (str, required):  The bq table name of the table to be loaded
+       source (str, required):  The file location, fully qualified i.e. gs://bucketName/filename.csv.
+       max_bad_records (int, default 0):  suggest setting this to a larger number as it will allow some errors.
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A dictionary object containing information about the process.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         bigquery_client = bigquery.Client(project=project)
@@ -635,9 +875,28 @@ def load_data_from_gcs_simple(dataset_name, table_name, source, max_bad_records=
         print(errorStr)
         raise
 
-def load_table_from_gcs(dataset_name, table_name, schema, source, skip_leading_rows=1, source_format='CSV', max_bad_records=0, write_disposition='WRITE_EMPTY', field_delimiter=",", project=None):
+def load_table_from_gcs(dataset_name, table_name, schema, source, skip_leading_rows=1, source_format='CSV', max_bad_records=0, 
+    write_disposition='WRITE_EMPTY', field_delimiter=",", project=None):
     """
     load_table_from_gcs loads a *NEW* table to bq from gcs with the schema
+
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       table_name (str, required):  The bq table name of the table to get loaded
+       schema (str, required):  the bq schema and column structure, in json bq cli format
+       source (str, required):  The file location, fully qualified i.e. gs://bucketName/filename.csv.
+       skip_leading_rows (int, default 1):  set to 0 if no header
+       source_format (str, default CSV):  only set this to CSV or things like Avro, etc. 
+       max_bad_records (int, default 0):  suggest setting this to a higher number, like 1000 or something
+       write_disposition (str, default WRITE_EMPTY):  WRITE_EMPTY overrides the table, other options: WRITE_TRUNCATE WRITE_APPEND
+       field_delimiter (str, default ","):  the file delimiter, use "/t" for tab
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A dictionary object containing information about the process.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
 
@@ -741,9 +1000,28 @@ def load_table_from_gcs(dataset_name, table_name, schema, source, skip_leading_r
         print(errorStr)
         raise
 
-def load_table_from_csv(dataset_name, table_name, schema, local_file_name, skip_leading_rows=1, source_format='CSV', project=None):
+def load_table_from_csv(dataset_name, table_name, schema, local_file_name, skip_leading_rows=1, source_format='CSV', max_bad_records=0, project=None):
     """
-    load_table_from_csv loads a local file to bq
+    load_table_from_csv loads a local file to bq.
+    This is really just a sample for the code base.  
+    Not "fully" implemented as you might need other options, 
+    I can not imagine us doing this often.
+
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       table_name (str, required):  The bq table name of the table to get loaded
+       schema (str, required):  the bq schema and column structure, in json bq cli format
+       local_file_name (str, required):  The file location, fully qualified is best i.e. /opt/projects/test/filename.csv
+       skip_leading_rows (int, default 1):  set to 0 if no header
+       source_format (str, default CSV):  only set this to CSV or things like Avro, etc. 
+       max_bad_records (int, default 0):  suggest setting this to a higher number, like 1000 or something
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A dictionary object containing information about the process.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         bigquery_client = bigquery.Client(project=project)
@@ -760,6 +1038,9 @@ def load_table_from_csv(dataset_name, table_name, schema, local_file_name, skip_
         job_config.skip_leading_rows = skip_leading_rows
         job_config.source_format = source_format
         job_config.schema = schemaList
+
+        if max_bad_records:
+            job_config.max_bad_records = max_bad_records
 
         with open(local_file_name, 'rb') as readable:
             # API request
@@ -780,9 +1061,26 @@ def load_table_from_csv(dataset_name, table_name, schema, local_file_name, skip_
         print(errorStr)
         raise
 
-def load_table_from_df(dataset_name, table_name, dataframe, project=None, chunksize=10000, verbose=False, reauth=False, if_exists='replace', private_key=None):
+def load_table_from_df(dataset_name, table_name, dataframe, chunksize=10000, verbose=False, reauth=False, if_exists='replace', private_key=None, project=None):
     """
     load_table_from_df loads a table from a pandas dataframe
+
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       table_name (str, required):  The bq table name of the table to get loaded
+       dataframe (pandas dataframe, required):  the bq schema and column structure, in json bq cli format
+       chunksize (int, default 10000):  
+       verbose (boolean, default false):  
+       reauth (boolean, default false):  
+       if_exists (str, default replace): 
+       private_key (str, optional): 
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A dictionary object containing information about the process.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         # the read_gbq requires the project_id(project name), so fetch it if none passed in
@@ -823,6 +1121,22 @@ def load_table_from_gcs_fixedwidth(dataset_name, table_name, fixedwidth_spec, so
             Width is the field's width and must be an integer
             DataType is the field's data type and must be either STRING, INTEGER, FLOAT, BOOLEAN, or TIMESTAMP
         example fixedwidth_spec= "Id:3:INTEGER,firstName:9:STRING,lastName:10:STRING,ISBN:11:STRING"
+
+    Args:
+       dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+       table_name (str, required):  The bq table name of the table to get loaded
+       fixedwidth_spec (str, required):  see comments above
+       source (str, required):  The file location, fully qualified i.e. gs://bucketName/filename.csv.
+       skip_leading_rows (int, default 1):  set to 0 if no header
+       source_format (str, default CSV):  only set this to CSV or things like Avro, etc. 
+       max_bad_records (int, default 0):  suggest setting this to a higher number, like 1000 or something
+       project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A dictionary object containing information about the process.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     temp_schema = """[
                             {
@@ -897,6 +1211,22 @@ def export_table_to_gcs(dataset_name, table_name, destination, field_delimiter="
                         'gs://merkle-cloud-innov-01-gcp/fake-dummy_data13_201711211526.csv',
                         field_delimiter="|", print_header=True, destination_format="CSV",
                         compression="GZIP")
+
+    Args:
+        dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+        table_name (str, required):  The bq table name of the table to get exported
+        destination (str, required):  the file location, fully qualified i.e. gs://bucketName/filename.csv.
+        field_delimiter (str, default ","):  the file delimiter, use "/t" for tab
+        print_header (boolean, default true):  print a header row if true
+        destination_format (str, default "CSV"):  cannot imagine us using anything but CSV
+        compression (str, default "GZIP"): compression algorith, leave NULL/None if no compression
+        project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A dictionary object containing information about the process.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         bigquery_client = bigquery.Client(project=project)
@@ -952,6 +1282,22 @@ def export_table_to_gcs(dataset_name, table_name, destination, field_delimiter="
 def export_query_to_gcs(dataset_name, sqlQuery, destination, field_delimiter=",", print_header=None, destination_format="CSV", compression="GZIP", keep_temp_table=None, project=None):
     """
     export_query_to_gcs creates a temporary table and export it to gs, then drop the temp table
+
+    Args:
+        dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+        sqlQuery (str, required):  The bq SQL to be executed and exported
+        destination (str, required):  the file location, fully qualified i.e. gs://bucketName/filename.csv.
+        field_delimiter (str, default ","):  the file delimiter, use "/t" for tab
+        print_header (boolean, default true):  print a header row if true
+        destination_format (str, default "CSV"):  cannot imagine us using anything but CSV
+        compression (str, default "GZIP"): compression algorith, leave NULL/None if no compression
+        project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A dictionary object containing information about the process.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
 
@@ -1011,6 +1357,19 @@ def create_view(dataset_name, view_name, sqlQuery, project=None):
     note bq requires you to use standardSQL when querying a view created with standardSQL 
     and legacySQL when querying a view created with legacySQL
     Suggestion:  please try to use standardSQL if possible
+
+    Args:
+        dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+        view_name (str, required):  The bq view name to be created
+        sqlQuery (str, required): the sql to be executed for the view
+        project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        True:  view created
+        False:  view not created
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
 
@@ -1037,6 +1396,15 @@ def create_view(dataset_name, view_name, sqlQuery, project=None):
 def convert_schema(schema_json_str):
     """
     convert_schema converts a standard bq cli json string into list formatted for bq python
+
+    Args:
+        schema_json_str (str, default required): standard bq cli json
+
+    Returns:
+        A list of the table schema which the load can use.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         schema_str = schema_json_str.replace('\n', '')
@@ -1067,6 +1435,19 @@ def convert_sqlquery_from_fixedwidth_spec(dataset_name, table_name, fixedwidth_s
         Width is the field's width and must be an integer
         DataType is the field's data type and must be either STRING, INTEGER, FLOAT, BOOLEAN, or TIMESTAMP
     example fixedwidth_spec= "Id:3:INTEGER,firstName:9:STRING,lastName:10:STRING,ISBN:11:STRING"
+
+    Args:
+        dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+        table_name (str, required):  The bq table name of the table to be processed
+        fixedwidth_spec (str, required):  
+        full_col_name (str, default "fullstring"):  
+        project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        A list of the table schema which the load can use.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     sqlQuery ="SELECT "
     col_list = fixedwidth_spec.split(",")
@@ -1110,6 +1491,17 @@ def run_sql_cli(dataset_name, sqlQuery, project=None):
     run_sql_cli - from Bandhav - using CLI because CTAS and DDL/SQL not yet available
     head -1 is there because the CLI prints out to stdout the record, blah
     shell=true because you need to inherit GOOGLE_APPLICATION_CREDENTIALS
+
+    Args:
+        dataset_name (str, required):  The bq dataset name string, sometimes called id though not numeric.
+        sqlQuery (str, required):  The sqlQuery you want the command line interface to run
+        project (str, optional):  The bq project, if null the project is pulled from GOOGLE_APPLICATION_CREDENTIALS.
+
+    Returns:
+        None.
+
+    Raises:
+       Standard errors are printed to stdout and raised.
     """
     try:
         resultCode=[]
