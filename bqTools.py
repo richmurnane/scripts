@@ -27,7 +27,9 @@ import datetime
 # ------------------------------------------------------------------
 
 def print_project_names():
-    "print_project_names prints a list of projects your account has access to stdout"
+    """
+    print_project_names prints a list of projects your account has access to stdout
+    """
     bigquery_client = bigquery.Client()
     for project in bigquery_client.list_projects():
         print(project.project_id)
@@ -38,7 +40,9 @@ def print_project_names():
 # ------------------------------------------------------------------
 
 def dataset_exists(dataset_name, project=None):
-    "dataset_exists returns a True/False, depending on if the bq dataset exists in the project"
+    """
+    dataset_exists returns a True/False, depending on if the bq dataset exists in the project
+    """
     try:
         bigquery_client = bigquery.Client(project=project)
         dataset_ref = bigquery_client.dataset(dataset_name)
@@ -48,7 +52,9 @@ def dataset_exists(dataset_name, project=None):
         return False
 
 def create_dataset(dataset_name, project=None):
-    "create_dataset creates a bq dataset, if already exists it will tell you"
+    """
+    create_dataset creates a bq dataset, if already exists it will tell you
+    """
     try:
 
         bigquery_client = bigquery.Client(project=project)
@@ -73,7 +79,8 @@ def create_dataset(dataset_name, project=None):
         raise
 
 def print_dataset_names(project=None):
-    """print_dataset_names prints to stdout all datasets in a given project.
+    """
+    print_dataset_names prints to stdout all datasets in a given project.
     If no project is specified, then the currently active project is used.
     """
     bigquery_client = bigquery.Client(project=project)
@@ -81,7 +88,8 @@ def print_dataset_names(project=None):
         print(dataset.dataset_id)
 
 def delete_dataset(dataset_name, project=None):
-    """delete_dataset will drop a dataset.
+    """
+    delete_dataset will drop a dataset.
     Note:  I haven't tried to drop one with tables in it, #todo test that"
     """
     try:
@@ -110,10 +118,11 @@ def delete_dataset(dataset_name, project=None):
 # ------------------------------------------------------------------
 
 def print_table_names(dataset_name, project=None):
+    """
+    print_table_names prints to stdout all of the tables in a given dataset.
+    If no project is specified, then the currently active project is used.
+    """
     try:
-        """print_table_names prints to stdout all of the tables in a given dataset.
-        If no project is specified, then the currently active project is used.
-        """
         bigquery_client = bigquery.Client(project=project)
         dataset_ref = bigquery_client.dataset(dataset_name)
 
@@ -130,7 +139,9 @@ def print_table_names(dataset_name, project=None):
         raise
 
 def table_exists(dataset_name, table_name, project=None):
-    "table_exists returns a True/False - does the table live in this dataset?"
+    """
+    table_exists returns a True/False - does the table live in this dataset?
+    """
     try:
         bigquery_client = bigquery.Client(project=project)
         dataset_ref = bigquery_client.dataset(dataset_name)
@@ -147,9 +158,11 @@ def table_exists(dataset_name, table_name, project=None):
         raise
 
 def create_empty_table(dataset_name, table_name, schema=None, project=None):
-    """create_empty_table creates an empty table with the provided schema, 
+    """
+    create_empty_table creates an empty table with the provided schema, 
     note the schema format should be the same as the bq cli.
-    if no schema provided, it uses a dummy/sample schema"""
+    if no schema provided, it uses a dummy/sample schema
+    """
     try:
         bigquery_client = bigquery.Client(project=project)
         if not schema:
@@ -190,8 +203,11 @@ def create_empty_table(dataset_name, table_name, schema=None, project=None):
         raise
 
 def create_table_as_select(dataset_name, table_name, sqlQuery, project=None):
-    """create_table_as_select - classic Create Table As Select (CTAS), uses CREATE_IF_NEEDED and WRITE_APPEND,
-    these two options could be added later as arguments if needed"""
+    """
+    create_table_as_select - classic Create Table As Select (CTAS), 
+    uses CREATE_IF_NEEDED and WRITE_APPEND,
+    these two options could be added later as arguments if needed
+    """
     try:
         bigquery_client = bigquery.Client(project=project)
         job_config = bigquery.QueryJobConfig()
@@ -231,13 +247,14 @@ def create_table_as_select(dataset_name, table_name, sqlQuery, project=None):
         raise
 
 def create_table_as_select_cli(dataset_name, table_name, sqlQuery, project=None):
+    """
+    create_table_as_select_cli - using google command line interface CLI 
+    I do not anticipate using this one very often since we have create_table_as_select(),
+    leaving it in the code for reference though.
+    Note:  head -1 is there because the CLI prints out to stdout the record, blah
+    shell=true because you need to inherit GOOGLE_APPLICATION_CREDENTIALS
+    """
     try:
-        """create_table_as_select_cli - using google command line interface CLI 
-        I do not anticipate using this one very often since we have create_table_as_select(),
-        leaving it in the code for reference though.
-        Note:  head -1 is there because the CLI prints out to stdout the record, blah
-        shell=true because you need to inherit GOOGLE_APPLICATION_CREDENTIALS
-        """
         osCmd = "bq query --use_legacy_sql=false --destination_table '" + dataset_name + "." + table_name + "' --allow_large_results \"" + sqlQuery + " \" | head -1"
         print("begin: " + str(osCmd))
         resultCode = call(osCmd, shell=True)
@@ -260,7 +277,9 @@ def create_table_as_select_cli(dataset_name, table_name, sqlQuery, project=None)
         raise
 
 def copy_table(dataset_name, source_table_name, dest_table_name, project=None):
-    "copy_table clones the source table to the destination table within the same dataset"
+    """
+    copy_table clones the source table to the destination table within the same dataset
+    """
     try:
 
         bigquery_client = bigquery.Client(project=project)
@@ -292,7 +311,8 @@ def copy_table(dataset_name, source_table_name, dest_table_name, project=None):
         raise
 
 def drop_table(dataset_name, table_name, project=None):
-    """drop_table - drops the table, whamo - good luck
+    """
+    drop_table - drops the table, whamo - good luck
     Deletes a table in a given dataset.
     If no project is specified, then the currently active project is used.
     """
@@ -322,7 +342,9 @@ def drop_table(dataset_name, table_name, project=None):
         raise
 
 def print_table_meta(dataset_name, table_name, project=None):
-    "print_table_meta prints to stdout the num of rows (via gcp meta), schema, and description"
+    """
+    print_table_meta prints to stdout the num of rows (via gcp meta), schema, and description
+    """
     try:
         bigquery_client = bigquery.Client(project=project)
         dataset = bigquery_client.dataset(dataset_name)
@@ -350,9 +372,11 @@ def print_table_meta(dataset_name, table_name, project=None):
         raise
 
 def rename_table(dataset_name, table_name, new_table_name, project=None):
-    """rename_table renames a table within the same dataset,
+    """
+    rename_table renames a table within the same dataset,
     to do this it copies and then removes the original, not pretty but there is no 
-    rename function in bq at this time"""
+    rename function in bq at this time
+    """
     try:
         if table_exists(dataset_name, new_table_name, project) is True:
             returnMsg = 'ERROR (rename_table) new_table_name exists: {}.'.format(new_table_name)
@@ -378,7 +402,9 @@ def rename_table(dataset_name, table_name, new_table_name, project=None):
         raise
 
 def get_table_schema(dataset_name, table_name, project=None):
-    "get_table_schema returns an object containing the schema information for a table"
+    """
+    get_table_schema returns an object containing the schema information for a table
+    """
     try:
         bigquery_client = bigquery.Client(project=project)
         dataset = bigquery_client.dataset(dataset_name)
@@ -392,7 +418,9 @@ def get_table_schema(dataset_name, table_name, project=None):
         raise
 
 def get_table_columns_df(dataset_name, table_name, project=None):
-    "get_table_columns_df returns a pandas dataframe containing the field names for a table"
+    """
+    get_table_columns_df returns a pandas dataframe containing the field names for a table
+    """
     try:
         bigquery_client = bigquery.Client(project=project)
         dataset = bigquery_client.dataset(dataset_name)
@@ -417,7 +445,8 @@ def get_table_columns_df(dataset_name, table_name, project=None):
 # ------------------------------------------------------------------
 
 def print_25_rows(dataset_name, table_name, project=None):
-    """print_25_rows prints rows to standard output in the given table.
+    """
+    print_25_rows prints rows to stdout in the given table.
     Will print 25 rows at most for brevity as tables can contain large amounts of rows. 
     If no project is specified, then the currently active project is used.
     """
@@ -458,7 +487,9 @@ def print_25_rows(dataset_name, table_name, project=None):
         raise
 
 def get_dataframe(sqlQuery, project=None, index_col=None, col_order=None, reauth=False, verbose=False, private_key=None, dialect='legacy'):
-    "get_dataframe returns a pandas dataframe for a query, nice!"
+    """
+    get_dataframe returns a pandas dataframe for a query, nice!
+    """
     try:
         # the read_gbq requires the project_id(project name), so fetch it if none passed in
         if not project:
@@ -475,9 +506,10 @@ def get_dataframe(sqlQuery, project=None, index_col=None, col_order=None, reauth
         raise
 
 def query_standard_sql(sqlQuery, print_stdout=True):
-    """ query_standard_sql allows you to just fire/forget a query to bq, Standard SQL
-        allows you to turn on/off stdout for results, and returns a message back to you
-        SQL should include fully qualified table names: `bigquery-public-data.samples.wikipedia`
+    """
+    query_standard_sql allows you to just fire/forget a query to bq, Standard SQL
+    allows you to turn on/off stdout for results, and returns a message back to you
+    SQL should include fully qualified table names: `bigquery-public-data.samples.wikipedia`
     """
     job_config = bigquery.QueryJobConfig()
 
@@ -503,11 +535,12 @@ def query_standard_sql(sqlQuery, print_stdout=True):
     return output_dict
 
 def print_1_rows(dataset_name, table_name, project=None):
+    """
+    print_1_rows - created by Bandhav - Prints rows in the given table.
+    Will print 25 rows at most for brevity as tables can contain large amounts
+    of rows. If no project is specified, then the currently active project is used.
+    """
     try:
-        """print_1_rows - created by Bandhav - Prints rows in the given table.
-        Will print 25 rows at most for brevity as tables can contain large amounts
-        of rows. If no project is specified, then the currently active project is used.
-        """
         bigquery_client = bigquery.Client(project=project)
         dataset_ref = bigquery_client.dataset(dataset_name)
         table_ref = dataset_ref.table(table_name)
@@ -603,7 +636,9 @@ def load_data_from_gcs_simple(dataset_name, table_name, source, max_bad_records=
         raise
 
 def load_table_from_gcs(dataset_name, table_name, schema, source, skip_leading_rows=1, source_format='CSV', max_bad_records=0, write_disposition='WRITE_EMPTY', field_delimiter=",", project=None):
-    "load_table_from_gcs loads a *NEW* table to bq from gcs with the schema"
+    """
+    load_table_from_gcs loads a *NEW* table to bq from gcs with the schema
+    """
     try:
 
         bigquery_client = bigquery.Client(project=project)
@@ -707,7 +742,9 @@ def load_table_from_gcs(dataset_name, table_name, schema, source, skip_leading_r
         raise
 
 def load_table_from_csv(dataset_name, table_name, schema, local_file_name, skip_leading_rows=1, source_format='CSV', project=None):
-    "load_table_from_csv loads a local file to bq"
+    """
+    load_table_from_csv loads a local file to bq
+    """
     try:
         bigquery_client = bigquery.Client(project=project)
 
@@ -744,7 +781,9 @@ def load_table_from_csv(dataset_name, table_name, schema, local_file_name, skip_
         raise
 
 def load_table_from_df(dataset_name, table_name, dataframe, project=None, chunksize=10000, verbose=False, reauth=False, if_exists='replace', private_key=None):
-    "load_table_from_df loads a table from a pandas dataframe"
+    """
+    load_table_from_df loads a table from a pandas dataframe
+    """
     try:
         # the read_gbq requires the project_id(project name), so fetch it if none passed in
         if not project:
@@ -775,7 +814,8 @@ def load_table_from_df(dataset_name, table_name, dataframe, project=None, chunks
         raise
 
 def load_table_from_gcs_fixedwidth(dataset_name, table_name, fixedwidth_spec, source, skip_leading_rows=1, max_bad_records=0, project=None):
-    """  load_table_from_gcs_fixedwidth loads a fixed width format file from gcs to 
+    """
+    load_table_from_gcs_fixedwidth loads a fixed width format file from gcs to 
     bq with fixedwidth_spec
         Note on fixedwidth_spec: a string that follows the below format:
                 ColumnName1:Width:DataType,ColumnName2:Width:DataType,...
@@ -847,7 +887,8 @@ def load_table_from_gcs_fixedwidth(dataset_name, table_name, fixedwidth_spec, so
 # ------------------------------------------------------------------
 
 def export_table_to_gcs(dataset_name, table_name, destination, field_delimiter=",", print_header=None, destination_format="CSV", compression="GZIP", project=None):
-    """export_table_to_gcs exports a table from bq into a file on gcs,
+    """
+    export_table_to_gcs exports a table from bq into a file on gcs,
         the destination should look like the following, with no brackets {}
         gs://{bucket-name-here}/{file-name-here}
         python export_data_to_gcs.py example_dataset example_table gs://example-bucket/example-data.csv
@@ -909,7 +950,9 @@ def export_table_to_gcs(dataset_name, table_name, destination, field_delimiter="
         raise
 
 def export_query_to_gcs(dataset_name, sqlQuery, destination, field_delimiter=",", print_header=None, destination_format="CSV", compression="GZIP", keep_temp_table=None, project=None):
-    """export_query_to_gcs creates a temporary table and export it to gs, then drop the temp table """
+    """
+    export_query_to_gcs creates a temporary table and export it to gs, then drop the temp table
+    """
     try:
 
         my_date = datetime.datetime.now()
@@ -992,7 +1035,9 @@ def create_view(dataset_name, view_name, sqlQuery, project=None):
 # ------------------------------------------------------------------
 
 def convert_schema(schema_json_str):
-    "convert_schema converts a standard bq cli json string into list formatted for bq python"
+    """
+    convert_schema converts a standard bq cli json string into list formatted for bq python
+    """
     try:
         schema_str = schema_json_str.replace('\n', '')
         schema_str = re.sub('\s+', ' ', schema_str)
@@ -1014,7 +1059,8 @@ def convert_schema(schema_json_str):
         raise
 
 def convert_sqlquery_from_fixedwidth_spec(dataset_name, table_name, fixedwidth_spec, full_col_name ='fullstring'):
-    """  convert_sqlquery_from_fixedwidth_spec creates a select sql query from the fixedwidth_spec and the provided table specs
+    """
+    convert_sqlquery_from_fixedwidth_spec creates a select sql query from the fixedwidth_spec and the provided table specs
         Note on fixedwidth_spec: a string that follows the below format:
             ColumnName1:Width:DataType,ColumnName2:Width:DataType,...
 
@@ -1060,7 +1106,8 @@ def convert_sqlquery_from_fixedwidth_spec(dataset_name, table_name, fixedwidth_s
     return sqlQuery
 
 def run_sql_cli(dataset_name, sqlQuery, project=None):
-    """run_sql_cli - from Bandhav - using CLI because CTAS and DDL/SQL not yet available
+    """
+    run_sql_cli - from Bandhav - using CLI because CTAS and DDL/SQL not yet available
     head -1 is there because the CLI prints out to stdout the record, blah
     shell=true because you need to inherit GOOGLE_APPLICATION_CREDENTIALS
     """

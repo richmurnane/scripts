@@ -10,7 +10,9 @@ import pandas as pd
 # ------------------------------------------------------------------
 
 def copy_blob(bucket_name, blob_name, new_bucket_name, new_blob_name, project=None):
-    """Copies a blob from one bucket to another with a new name."""
+    """
+    Copies a blob from one bucket to another with a new name.
+    """
     try:
         msg = "Msg: copy_blob"
         # the read_gbq requires the project_id(project name), so fetch it if none passed in
@@ -49,7 +51,9 @@ def copy_blob(bucket_name, blob_name, new_bucket_name, new_blob_name, project=No
         raise
 
 def rename_blob(bucket_name, blob_name, new_name, project=None):
-    """Renames a blob."""
+    """
+    Renames a blob.
+    """
     try:
         msg = "Msg: rename_blob"
         # the read_gbq requires the project_id(project name), so fetch it if none passed in
@@ -81,7 +85,9 @@ def rename_blob(bucket_name, blob_name, new_name, project=None):
         raise
 
 def new_gs_file_from_string(bucket_name, blob_name, string_text, project=None):
-    """create a new file on gs and place the string in it"""
+    """
+    create a new file on gs and place the string in it
+    """
     try:
         msg = "Msg: new_gs_file_from_string"
         # the read_gbq requires the project_id(project name), so fetch it if none passed in
@@ -111,7 +117,9 @@ def new_gs_file_from_string(bucket_name, blob_name, string_text, project=None):
         raise
 
 def print_bucket_list(project=None):
-    """simply print out the names of the buckets"""
+    """
+    simply print out the names of the buckets
+    """
     try:
         if not project:
             credentials, project_id = google.auth.default(scopes=['https://www.googleapis.com/auth/iam'])
@@ -136,7 +144,9 @@ def print_bucket_list(project=None):
         raise
 
 def get_blob_list_dataframe(bucket_name, max_results=99999, prefix=None, project=None, printOut=None):
-    """return a pandas dataframe of the filenames in a bucket, search for files by using prefix"""
+    """
+    return a pandas dataframe of the filenames in a bucket, search for files by using prefix
+    """
     try:
         if not project:
             credentials, project_id = google.auth.default(scopes=['https://www.googleapis.com/auth/iam'])
@@ -166,7 +176,9 @@ def get_blob_list_dataframe(bucket_name, max_results=99999, prefix=None, project
 
 # Michael L. asked to research reading a file from gcs in python
 def read_gcs_file(bucket_name='merkle-cloud-innov-01-gcp', blob_name='fake-data-3cols_2017110901.csv'):
-    "reading a file from gcs in python"
+    """
+    reading a file from gcs in python
+    """
     client = storage.Client()
     bucket = client.get_bucket(bucket_name)
     blob = storage.Blob(blob_name, bucket)
@@ -189,7 +201,6 @@ def read_gcs_file(bucket_name='merkle-cloud-innov-01-gcp', blob_name='fake-data-
     }
 
     return output_dict
-
 
 
 # todo: def upload_file(bucket_name, blob_name, filename)
