@@ -83,8 +83,6 @@ def main():
     test_list = []
 
     for rec in url_list:
-      response_status_code = ""
-      response_status_reason = ""
       rec_type = rec[0]
       rec_host = rec[1]
       rec_port = rec[2]
@@ -119,8 +117,8 @@ def main():
         response_headers, 
         response_text])
 
-    print("game over")
     pprint.pprint(test_list)
+    print("game over")
 
 
 if __name__ == "__main__":
