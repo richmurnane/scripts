@@ -12,8 +12,13 @@ Problem:
 """
 
 import json
-import requests
 import pprint
+import logging
+import requests
+from requests_toolbelt.utils import dump
+
+whitelist_json_filename = "whitelist.json"
+logfile_filename = "snowCD-lite-python.log"
 
 def read_whitelist_json():
     """
@@ -36,7 +41,7 @@ def read_whitelist_json():
     """
     return_list = []
 
-    with open('whitelist.json') as f:
+    with open(whitelist_json_filename) as f:
       data = json.load(f)
 
     for rec in data:
@@ -65,7 +70,6 @@ def read_whitelist_json():
 
     return return_list
 
-
 def main():
     """
     main is automatically executed when an process runs this script
@@ -81,9 +85,15 @@ def main():
 
     """
     print("Begin main() in snowCD-lite-python")
+
+    logging.basicConfig(filename=logfile_filename, level=logging.INFO)
+    requests_log = logging.getLogger("requests.packages.urllib3")
+    requests_log.setLevel(logging.DEBUG)
+    requests_log.propagate = True
+
     url_list = read_whitelist_json()
 
-    test_list = []
+    output_list = []
 
     for rec in url_list:
       rec_type = rec[0]
@@ -98,18 +108,32 @@ def main():
       if response_status_code == "200":
         msg = "msg: OK"
       elif response_status_code == "403":
-        msg = "msg: 403 - FORBIDDEN - request understood, server refusing action"
+        msg = "msg (see log file): 403 - FORBIDDEN - request understood, server refusing action"
       else:
-        msg = "msg: " + response_status_code + " - OTHER"
+        msg = "msg (see log file): " + response_status_code + " - OTHER"
 
       if response_status_code != "200":
         response_headers = str(response.headers)
         response_text = response.text
+        response_dump = dump.dump_all(response)
+        response_dump_str = response_dump.decode('utf-8')
+        requests_log.error(" *** ERROR *** " + rec_host)
+        requests_log.error(" " + response_status_code)
+        requests_log.error(response_dump_str)
+      elif rec_type in ["STAGE", "SNOWFLAKE_DEPLOYMENT"]:
+        response_headers = str(response.headers)
+        response_text = response.text
+        response_dump = dump.dump_all(response)
+        response_dump_str = response_dump.decode('utf-8')
+        requests_log.info(" *** INFO *** STAGE *** " + rec_host)
+        requests_log.info(" " + response_status_code)
+        requests_log.info(response_dump_str)
       else:
         response_headers = "OK"
         response_text = "OK"
-
-      test_list.append(
+        response_dump_str = "OK"
+ 
+      output_list.append(
         [rec_type, 
         rec_host, 
         rec_port, 
@@ -120,7 +144,7 @@ def main():
         response_headers, 
         response_text])
 
-    pprint.pprint(test_list)
+    pprint.pprint(output_list)
     print("game over")
 
 
