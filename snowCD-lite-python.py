@@ -21,8 +21,7 @@ def read_whitelist_json():
     https://docs.snowflake.com/en/user-guide/snowcd.html
 
     Args:
-       No inbound arguments, 
-       but a modification should probably include a variable location for the file.
+       No inbound arguments
 
     Returns:
         a list of the contents of the json.
@@ -30,35 +29,39 @@ def read_whitelist_json():
     Raises:
        if it fails it will fail big - go big or go home
 
+    TODO:
+       consider a modification should probably include a variable location for the file
+       consider the ability to hard code contents of json in a variable
+
     """
     return_list = []
 
     with open('whitelist.json') as f:
       data = json.load(f)
 
-      for rec in data:
-        rec_type = ""
-        rec_host = ""
-        rec_port = ""
-        rec_url = ""
+    for rec in data:
+      rec_type = ""
+      rec_host = ""
+      rec_port = ""
+      rec_url = ""
 
-        for attribute, value in rec.items():
-          if attribute == "type":
-            rec_type = value
-          if attribute == "host":
-            rec_host = value
-          if attribute == "port":
-            rec_port = value
+      for attribute, value in rec.items():
+        if attribute == "type":
+          rec_type = value
+        if attribute == "host":
+          rec_host = value
+        if attribute == "port":
+          rec_port = value
 
-        if str(rec_port) == "443":
-          rec_url = "https://" + rec_host
-        else:
-          rec_url = "http://" + rec_host
+      if str(rec_port) == "443":
+        rec_url = "https://" + rec_host
+      else:
+        rec_url = "http://" + rec_host
 
-        if rec_host == "ocsp.snowflakecomputing.com":
-          rec_url = str(rec_url) + "/ocsp_response_cache.json"
+      if rec_host == "ocsp.snowflakecomputing.com":
+        rec_url = str(rec_url) + "/ocsp_response_cache.json"
 
-        return_list.append([rec_type, rec_host, rec_port, rec_url])
+      return_list.append([rec_type, rec_host, rec_port, rec_url])
 
     return return_list
 
