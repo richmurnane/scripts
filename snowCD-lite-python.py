@@ -6,7 +6,15 @@ Name:
 Objectives:
     A poor mans SnowCD using Python
 
-Problem:
+Instructions:
+    1. push script to host experiencing Snowflake connection issues but has Python3
+    2. ensure you have requests, requests_toolbelt, json, logging, etc.
+    3. save whitelist.json to folder with the script 
+    whitelist.json docs at https://docs.snowflake.com/en/user-guide/snowcd.html
+    4. run with command like "python3 snowCD-lite-python.py"
+    5. review STDOUT and snowCD-lite-python.log
+
+Problem with the script?
     send up the bat signal or call the bat phone
 
 """
@@ -119,9 +127,9 @@ def print_output(test_count, ok_count, fail_count, results_list):
   print("==============================================")
   print("SUMMARY")
   print("==============================================")
-  print(f'# checks:         {test_count}')
-  print(f'# OK checks:      {ok_count}')
-  print(f'# FAILED checks:  {fail_count}')
+  print(f'Num. checks:         {test_count}')
+  print(f'Num. OK checks:      {ok_count}')
+  print(f'Num. FAILED checks:  {fail_count}')
   print("==============================================")
 
 
@@ -216,7 +224,6 @@ def main():
       snowcd_status])
 
   #pprint.pprint(output_list)
-
   print_output(check_count, ok_count, fail_count, output_list)
 
   requests_log.info("check_count: " + str(check_count))
