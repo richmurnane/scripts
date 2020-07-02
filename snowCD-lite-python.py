@@ -143,7 +143,10 @@ def print_output(test_count, ok_count, fail_count, results_list):
 
 def main():
   """
-  main is automatically executed when an process runs this script
+  main is automagically executed when an process runs this script, the script 
+  1. reads the whitelist json document
+  2. tries a http(s) get on each url
+  3. prints summary info and logs details to a logfile
 
   Args:
      None
@@ -166,10 +169,10 @@ def main():
   url_list = read_whitelist_json()
 
   output_list = []
-
   check_count = 0
   ok_count = 0
   fail_count = 0
+
   for rec in url_list:
     check_count += 1
     rec_type = rec[0]
