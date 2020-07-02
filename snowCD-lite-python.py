@@ -260,7 +260,6 @@ def main():
       snowcd_status,
       cnames_data])
 
-  #pprint.pprint(output_list)
   print_output(check_count, ok_count, fail_count, output_list)
 
   requests_log.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
