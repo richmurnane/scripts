@@ -8,7 +8,12 @@ Objectives:
 
 Instructions:
     1. push script to host experiencing Snowflake connection issues w/ Python3
-    2. ensure you have requests, requests_toolbelt, json, logging, etc.
+    2. ensure you have the following libraries pip installed
+        requests
+        requests_toolbelt
+        json
+        logging
+        dnsPython
     3. save whitelist.json to folder with the script 
         whitelist.json docs at https://docs.snowflake.com/en/user-guide/snowcd.html
     4. run with command like "python3 snowCD-lite-python.py"
@@ -24,6 +29,7 @@ import pprint
 import logging
 import requests
 from requests_toolbelt.utils import dump
+import dns.resolver
 
 whitelist_json_filename = "whitelist.json"
 logfile_filename = "snowCD-lite-python.log"
@@ -101,7 +107,7 @@ def print_output(test_count, ok_count, fail_count, results_list):
 
   """    
 
-  if fail_count >= 0:
+  if fail_count >= 1:
     print("==============================================")
     print("Details of FAILED checks")
     print("Please see logfile for further details")
@@ -120,6 +126,7 @@ def print_output(test_count, ok_count, fail_count, results_list):
         print("Response: " + str(rec[6]))
         print("Response: " + str(rec[7]))
         print("Response: " + str(rec[8]))
+        print("CNames:   " + str(rec[10]))
         print("Suggestion: Check your networking, proxy, vpc configuration, etc...")
         print("==============================================")
         print("")
@@ -130,6 +137,7 @@ def print_output(test_count, ok_count, fail_count, results_list):
   print(f'Num. checks:         {test_count}')
   print(f'Num. OK checks:      {ok_count}')
   print(f'Num. FAILED checks:  {fail_count}')
+  print("Please see logfile for further details")
   print("==============================================")
 
 
@@ -177,6 +185,18 @@ def main():
     response_dump = dump.dump_all(response)
     response_dump_str = response_dump.decode('utf-8')
 
+    cnames = "N/A"
+    cnames_list = []
+
+    try:
+      cnames_results = dns.resolver.query(rec_host, 'CNAME')
+      for cnames_data in cnames_results:
+          cnames_list.append(str(cnames_data))
+
+      cnames = str(cnames_list)
+    except:
+      cnames = "EXCEPTION IN CNAMES"
+
     if response_status_code == "200":
       msg = "msg: OK"
     elif response_status_code == "403":
@@ -192,6 +212,14 @@ def main():
       requests_log.warning(response_dump_str)
       requests_log.warning(" ^^^ WARN ^^^^^ " + rec_host)
       ok_count += 1
+    elif response_status_code == "403" and rec_type == "OUT_OF_BAND_TELEMETRY" and response_dump_str.find("Missing Authentication Token") >= 1:
+      requests_log.warning(" *** WARN ***** " + rec_host)
+      requests_log.warning(" *** snowCD does not fail this ***** " + str(response_status_code))
+      requests_log.warning(" *** OUT_OF_BAND_TELEMETRY and Missing Authentication Token ***** " + rec_host)
+      requests_log.warning(" " + response_status_code)
+      requests_log.warning(response_dump_str)
+      requests_log.warning(" ^^^ WARN ^^^^^ " + rec_host)
+      ok_count += 1
     elif response_status_code != "200":
       requests_log.error(" *** ERROR *** " + rec_host)
       requests_log.error(" " + response_status_code)
@@ -200,16 +228,26 @@ def main():
       snowcd_status = "FAIL"
       fail_count += 1
     elif rec_type in ["STAGE", "SNOWFLAKE_DEPLOYMENT"]:
-      requests_log.info(" *** INFO *** " + rec_type + " *** " + rec_host)
-      requests_log.info(" " + response_status_code)
-      requests_log.info(response_dump_str)
-      requests_log.info(" ^^^ INFO ^^^ " + rec_type + " ^^^ " + rec_host)
+#      requests_log.info(" *** INFO *** " + rec_type + " *** " + rec_host)
+#      requests_log.info(" " + response_status_code)
+#      requests_log.info(response_dump_str)
+#      requests_log.info(" ^^^ INFO ^^^ " + rec_type + " ^^^ " + rec_host)
       ok_count += 1
     else:
       response_headers = "OK"
       response_text = "OK"
       response_dump_str = "OK"
       ok_count += 1
+
+    requests_log.info("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    requests_log.info("Host:     " + str(rec[1]))
+    requests_log.info("rec_type: " + str(rec_type))
+    requests_log.info("snowcd_status: " + str(snowcd_status))
+    requests_log.info("Response: " + response_status_code)
+    requests_log.info("CNames:   " + cnames)
+    requests_log.info("Response Dump:   " + response_dump_str)
+    requests_log.info("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+
 
     output_list.append(
       [rec_type, 
@@ -221,15 +259,18 @@ def main():
       msg, 
       response_headers, 
       response_text,
-      snowcd_status])
+      snowcd_status,
+      str(cnames_data)])
 
   #pprint.pprint(output_list)
   print_output(check_count, ok_count, fail_count, output_list)
 
+  requests_log.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
   requests_log.info("check_count: " + str(check_count))
   requests_log.info("ok_count:    " + str(ok_count))
   requests_log.info("fail_count:  " + str(fail_count))
   requests_log.info("...game over...")
+  requests_log.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
   print("game over")
 
