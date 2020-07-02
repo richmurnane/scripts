@@ -134,9 +134,9 @@ def print_output(test_count, ok_count, fail_count, results_list):
   print("==============================================")
   print("SUMMARY")
   print("==============================================")
-  print(f'Num. checks:         {test_count}')
-  print(f'Num. OK checks:      {ok_count}')
-  print(f'Num. FAILED checks:  {fail_count}')
+  print("Num. checks:         " + str(test_count))
+  print("Num. OK checks:      " + str(ok_count))
+  print("Num. FAILED checks:  " + str(fail_count))
   print("Please see logfile for further details")
   print("==============================================")
 
@@ -205,17 +205,17 @@ def main():
       msg = "msg (see log file): " + response_status_code + " - OTHER"
 
     snowcd_status = "OK"
-    if response_status_code == "403" and rec_type == "STAGE" and response_dump_str.find("AccessDenied") >= 1:
+    if (response_status_code == "403" and  rec_type == "STAGE" and  response_dump_str.find("AccessDenied") >= 1):
       requests_log.warning(" *** WARN ***** " + rec_host)
       requests_log.warning(" *** STAGE and AccessDenied ***** " + rec_host)
       requests_log.warning(" " + response_status_code)
       requests_log.warning(response_dump_str)
       requests_log.warning(" ^^^ WARN ^^^^^ " + rec_host)
       ok_count += 1
-    elif response_status_code == "403" and rec_type == "OUT_OF_BAND_TELEMETRY" and response_dump_str.find("Missing Authentication Token") >= 1:
+    elif (response_status_code == "403" and  rec_type == "OUT_OF_BAND_TELEMETRY" and   response_dump_str.find("Missing Authentication Token") >= 1):
       requests_log.warning(" *** WARN ***** " + rec_host)
       requests_log.warning(" *** snowCD does not fail this ***** " + str(response_status_code))
-      requests_log.warning(" *** OUT_OF_BAND_TELEMETRY and Missing Authentication Token ***** " + rec_host)
+      requests_log.warning(" *** OUT_OF_BAND_TELEMETRY and Missing Token ***** " + rec_host)
       requests_log.warning(" " + response_status_code)
       requests_log.warning(response_dump_str)
       requests_log.warning(" ^^^ WARN ^^^^^ " + rec_host)
@@ -228,10 +228,6 @@ def main():
       snowcd_status = "FAIL"
       fail_count += 1
     elif rec_type in ["STAGE", "SNOWFLAKE_DEPLOYMENT"]:
-#      requests_log.info(" *** INFO *** " + rec_type + " *** " + rec_host)
-#      requests_log.info(" " + response_status_code)
-#      requests_log.info(response_dump_str)
-#      requests_log.info(" ^^^ INFO ^^^ " + rec_type + " ^^^ " + rec_host)
       ok_count += 1
     else:
       response_headers = "OK"
