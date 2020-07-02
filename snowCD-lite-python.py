@@ -244,7 +244,6 @@ def main():
     requests_log.info("Response Dump:   " + response_dump_str)
     requests_log.info("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
 
-
     output_list.append(
       [rec_type, 
       rec_host, 
@@ -256,7 +255,7 @@ def main():
       response_headers, 
       response_text,
       snowcd_status,
-      str(cnames_data)])
+      cnames_data])
 
   #pprint.pprint(output_list)
   print_output(check_count, ok_count, fail_count, output_list)
