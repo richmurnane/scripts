@@ -200,6 +200,19 @@ def main():
     except:
       cnames = "EXCEPTION IN CNAMES"
 
+    answers = "N/A"
+    answers_list = []
+    try:
+      answers_results = dns.resolver.query(rec_host, 'A')
+      for answers_data in answers_results:
+          answers_str = str(answers_data)
+          answers_name = str(dns.reversename.from_address(answers_str))
+          answers_list.append([answers_str, answers_name])
+
+      answers = str(answers_list)
+    except:
+      answers = "EXCEPTION IN ANSWERS"
+
     if response_status_code == "200":
       msg = "msg: OK"
     elif response_status_code == "403":
@@ -244,6 +257,7 @@ def main():
     requests_log.info("snowcd_status: " + str(snowcd_status))
     requests_log.info("Response: " + response_status_code)
     requests_log.info("CNames:   " + cnames)
+    requests_log.info("Answers:   " + answers)
     requests_log.info("Response Dump:   " + response_dump_str)
     requests_log.info("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
 
