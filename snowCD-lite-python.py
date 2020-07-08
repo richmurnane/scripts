@@ -164,7 +164,7 @@ def main():
   requests_log = logging.getLogger("requests.packages.urllib3")
   requests_log.setLevel(logging.DEBUG)
   requests_log.propagate = True
-  requests_log.info("...begin...")
+  requests_log.info(" ...begin...")
 
   url_list = read_whitelist_json()
 
@@ -190,7 +190,6 @@ def main():
 
     cnames = "N/A"
     cnames_list = []
-
     try:
       cnames_results = dns.resolver.query(rec_host, 'CNAME')
       for cnames_data in cnames_results:
@@ -200,18 +199,18 @@ def main():
     except:
       cnames = "EXCEPTION IN CNAMES"
 
-    answers = "N/A"
-    answers_list = []
+    a_recs = "N/A"
+    a_recs_list = []
     try:
-      answers_results = dns.resolver.query(rec_host, 'A')
-      for answers_data in answers_results:
-          answers_str = str(answers_data)
-          answers_name = str(dns.reversename.from_address(answers_str))
-          answers_list.append([answers_str, answers_name])
+      a_recs_results = dns.resolver.query(rec_host, 'A')
+      for a_recs_data in a_recs_results:
+          a_recs_str = str(a_recs_data)
+          a_recs_name = str(dns.reversename.from_address(a_recs_str))
+          a_recs_list.append([a_recs_str, a_recs_name])
 
-      answers = str(answers_list)
+      a_recs = str(a_recs_list)
     except:
-      answers = "EXCEPTION IN ANSWERS"
+      a_recs = "EXCEPTION IN A RECORDS"
 
     if response_status_code == "200":
       msg = "msg: OK"
@@ -225,7 +224,7 @@ def main():
       requests_log.warning(" *** WARN ***** " + rec_host)
       requests_log.warning(" *** STAGE and AccessDenied ***** " + rec_host)
       requests_log.warning(" " + response_status_code)
-      requests_log.warning(response_dump_str)
+      requests_log.warning(" " + response_dump_str)
       requests_log.warning(" ^^^ WARN ^^^^^ " + rec_host)
       ok_count += 1
     elif (response_status_code == "403" and  rec_type == "OUT_OF_BAND_TELEMETRY" and   response_dump_str.find("Missing Authentication Token") >= 1):
@@ -233,13 +232,13 @@ def main():
       requests_log.warning(" *** snowCD does not fail this ***** " + str(response_status_code))
       requests_log.warning(" *** OUT_OF_BAND_TELEMETRY and Missing Token ***** " + rec_host)
       requests_log.warning(" " + response_status_code)
-      requests_log.warning(response_dump_str)
+      requests_log.warning(" " + response_dump_str)
       requests_log.warning(" ^^^ WARN ^^^^^ " + rec_host)
       ok_count += 1
     elif response_status_code != "200":
       requests_log.error(" *** ERROR *** " + rec_host)
       requests_log.error(" " + response_status_code)
-      requests_log.error(response_dump_str)
+      requests_log.error(" " + response_dump_str)
       requests_log.error(" ^^^ ERROR ^^^ " + rec_host)
       snowcd_status = "FAIL"
       fail_count += 1
@@ -252,13 +251,13 @@ def main():
       ok_count += 1
 
     requests_log.info("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
-    requests_log.info("Host:     " + str(rec[1]))
-    requests_log.info("rec_type: " + str(rec_type))
-    requests_log.info("snowcd_status: " + str(snowcd_status))
-    requests_log.info("Response: " + response_status_code)
-    requests_log.info("CNames:   " + cnames)
-    requests_log.info("Answers:   " + answers)
-    requests_log.info("Response Dump:   " + response_dump_str)
+    requests_log.info(" Host:     " + str(rec[1]))
+    requests_log.info(" rec_type: " + str(rec_type))
+    requests_log.info(" snowcd_status: " + str(snowcd_status))
+    requests_log.info(" Response: " + response_status_code)
+    requests_log.info(" CNames:   " + cnames)
+    requests_log.info(" ARecords:   " + a_recs)
+    requests_log.info(" Response Dump:   " + response_dump_str)
     requests_log.info("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
 
     output_list.append(
@@ -277,10 +276,10 @@ def main():
   print_output(check_count, ok_count, fail_count, output_list)
 
   requests_log.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-  requests_log.info("check_count: " + str(check_count))
-  requests_log.info("ok_count:    " + str(ok_count))
-  requests_log.info("fail_count:  " + str(fail_count))
-  requests_log.info("...game over...")
+  requests_log.info(" check_count: " + str(check_count))
+  requests_log.info(" ok_count:    " + str(ok_count))
+  requests_log.info(" fail_count:  " + str(fail_count))
+  requests_log.info(" ...game over...")
   requests_log.info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
   print("game over")
