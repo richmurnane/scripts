@@ -1,3 +1,6 @@
+--fx_ngrams.sql
+--Snowflake Javascript function to create ngrams from string
+
 CREATE OR REPLACE FUNCTION fx_ngrams (str varchar, length double)
 RETURNS array
 LANGUAGE JAVASCRIPT
@@ -34,3 +37,4 @@ $$
 
 
 SELECT fx_ngrams('This is the best thing ever, Hello World', 5);
+select value from table(flatten(fx_npairs('This is the best thing ever, Hello World', 5)));
